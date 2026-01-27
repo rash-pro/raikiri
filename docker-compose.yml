@@ -1,0 +1,11 @@
+version: '3'
+services:
+  raikiri:
+    build: .
+    ports:
+      - "30000:30000"
+    environment:
+      - TWITCH_CHANNELS=${TWITCH_CHANNELS}
+      - YOUTUBE_LIVE_ID=${YOUTUBE_LIVE_ID}
+      - YOUTUBE_CHANNEL_ID=${YOUTUBE_CHANNEL_ID}
+    restart: unless-stopped

@@ -1,0 +1,132 @@
+:root {
+    --bg-color: transparent;
+    --text-color: #ffffff;
+    --text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    --font-family: 'Inter', sans-serif;
+    --twitch-color: #9146FF;
+    --youtube-color: #FF0000;
+    --success-color: #00fa9a;
+    --error-color: #ff4500;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 10px;
+    overflow-y: hidden;
+    /* Hide scrollbar usually */
+}
+
+#chat-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 95vh;
+    gap: 8px;
+}
+
+#status-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 1000;
+    pointer-events: none;
+    /* Let clicks pass through */
+}
+
+.status-item {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 1s;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: gray;
+}
+
+.status-connected .status-indicator {
+    background-color: var(--success-color);
+    box-shadow: 0 0 5px var(--success-color);
+}
+
+.status-disconnected .status-indicator {
+    background-color: gray;
+}
+
+.status-error .status-indicator {
+    background-color: var(--error-color);
+    box-shadow: 0 0 5px var(--error-color);
+}
+
+.chat-message {
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    animation: fadeIn 0.3s ease;
+    text-shadow: var(--text-shadow);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.platform-badge {
+    margin-right: 6px;
+    font-weight: bold;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.platform-twitch .platform-badge {
+    background-color: var(--twitch-color);
+    color: white;
+}
+
+.platform-youtube .platform-badge {
+    background-color: var(--youtube-color);
+    color: white;
+}
+
+.author {
+    font-weight: 700;
+    margin-right: 6px;
+    color: #ffd700;
+    /* Gold for visibility */
+}
+
+.content {
+    word-break: break-word;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Custom platform coloring for usernames if available */
+.author[style] {
+    text-shadow: 1px 1px 1px #000;
+}
