@@ -114,6 +114,13 @@ body {
     word-break: break-word;
 }
 
+.emote {
+    height: 1.2em;
+    vertical-align: middle;
+    margin: -2px 2px 0 2px;
+    display: inline-block;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

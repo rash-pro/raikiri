@@ -1,6 +1,8 @@
 const { LiveChat } = require('youtube-chat');
 const winston = require('winston');
+
 const LogBuffer = require('../logBuffer');
+const { escapeHtml } = require('../utils/sanitizer');
 
 class YouTubeService {
     constructor(identifier, io) {
@@ -49,6 +51,7 @@ class YouTubeService {
                 color: null, // YouTube doesn't expose user color in the same way
                 timestamp: new Date(chatItem.timestamp).toISOString(),
                 authorDetails: chatItem.author, // Extra details if needed
+                isHtml: true
             };
 
             this.io.emit('chat_message', chatMessage);
@@ -75,7 +78,23 @@ class YouTubeService {
 
     parseMessage(messageRuns) {
         if (!Array.isArray(messageRuns)) return '';
-        return messageRuns.map(run => run.text || '').join('');
+
+        return messageRuns.map(run => {
+            // Case 1: Nested emoji object (Legacy/Standard)
+            if (run.emoji) {
+                const url = run.emoji.image?.thumbnails?.[0]?.url;
+                if (url) return `<img src="${url}" class="emote" alt="${run.emoji.emojiId || 'emote'}">`;
+                return run.text || run.emoji.shortcuts?.[0] || '';
+            }
+
+            // Case 2: Flat emoji object (Confirmed by User Logs)
+            if (run.url) {
+                return `<img src="${run.url}" class="emote" alt="${run.alt || 'emote'}">`;
+            }
+
+            // Case 3: Text
+            return escapeHtml(run.text || '');
+        }).join('');
     }
 
     async connect() {

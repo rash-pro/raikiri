@@ -38,7 +38,13 @@ function appendMessage(data) {
     // Content
     const contentSpan = document.createElement('span');
     contentSpan.classList.add('content');
-    contentSpan.textContent = data.content; // textContent for safety against XSS
+
+    if (data.isHtml) {
+        contentSpan.innerHTML = data.content; // Server has already sanitized the text parts
+    } else {
+        contentSpan.textContent = data.content;
+    }
+
     msgDiv.appendChild(contentSpan);
 
     chatContainer.appendChild(msgDiv);
