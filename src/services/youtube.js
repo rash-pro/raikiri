@@ -1,5 +1,6 @@
 const { LiveChat } = require('youtube-chat');
 const winston = require('winston');
+const LogBuffer = require('../logBuffer');
 
 class YouTubeService {
     constructor(identifier, io) {
@@ -12,12 +13,28 @@ class YouTubeService {
         this.liveChat = new LiveChat(identifier);
 
         this.logger = winston.createLogger({
-            level: 'info',
+            level: 'debug',
             defaultMeta: { service: 'youtube' },
             transports: [new winston.transports.Console({ format: winston.format.simple() })]
         });
 
         this.setupListeners();
+    }
+
+    logToClient(level, message, details = null) {
+        const log = {
+            platform: 'youtube',
+            level,
+            message,
+            details,
+            timestamp: new Date().toISOString()
+        };
+
+        // Add to buffer
+        LogBuffer.add(log);
+
+        // Emit to all
+        this.io.emit('debug_log', log);
     }
 
     setupListeners() {
@@ -39,16 +56,19 @@ class YouTubeService {
 
         this.liveChat.on('start', (liveId) => {
             this.logger.info(`Connected to YouTube stream: ${liveId}`);
+            this.logToClient('info', `Connected to stream: ${liveId}`);
             this.io.emit('status', { platform: 'youtube', state: 'connected' });
         });
 
         this.liveChat.on('error', (err) => {
             this.logger.error('YouTube Chat Error', err);
+            this.logToClient('error', 'Connection Error', err.message);
             this.io.emit('status', { platform: 'youtube', state: 'error', message: err.message });
         });
 
         this.liveChat.on('end', (reason) => {
             this.logger.info(`YouTube stream ended: ${reason}`);
+            this.logToClient('warn', `Stream ended: ${reason}`);
             this.io.emit('status', { platform: 'youtube', state: 'disconnected', message: reason });
         });
     }
@@ -60,13 +80,16 @@ class YouTubeService {
 
     async connect() {
         try {
+            this.logToClient('info', 'Attempting to connect...');
             const ok = await this.liveChat.start();
             if (!ok) {
                 this.logger.error('Failed to start YouTube chat listener');
+                this.logToClient('error', 'Failed to start listener');
                 this.io.emit('status', { platform: 'youtube', state: 'error', message: 'Failed to start' });
             }
         } catch (err) {
             this.logger.error('Failed to connect to YouTube', err);
+            this.logToClient('error', 'Connection Exception', err.message);
             this.io.emit('status', { platform: 'youtube', state: 'error', message: err.message });
         }
     }

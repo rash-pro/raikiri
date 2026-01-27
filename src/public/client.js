@@ -1,6 +1,16 @@
 const socket = io();
 const chatContainer = document.getElementById('chat-container');
 const statusContainer = document.getElementById('status-container');
+const debugContainer = document.createElement('div'); // Debug panel
+
+// Check for debug mode
+const urlParams = new URLSearchParams(window.location.search);
+const isDebug = urlParams.get('debug') === 'true';
+
+if (isDebug) {
+    debugContainer.id = 'debug-panel';
+    document.body.appendChild(debugContainer);
+}
 
 // Max messages to keep in the DOM
 const MAX_MESSAGES = 100;
@@ -78,6 +88,20 @@ function updateStatus(platform, state, message) {
 
 socket.on('status', (data) => {
     updateStatus(data.platform, data.state, data.message);
+});
+
+socket.on('debug_log', (data) => {
+    if (!isDebug) return;
+
+    const logDiv = document.createElement('div');
+    logDiv.classList.add('debug-log', `log-${data.level}`);
+    logDiv.innerText = `[${data.platform}] ${data.message} ${data.details ? JSON.stringify(data.details) : ''}`;
+    debugContainer.prepend(logDiv);
+
+    // Prune logs
+    if (debugContainer.children.length > 50) {
+        debugContainer.removeChild(debugContainer.lastChild);
+    }
 });
 
 socket.on('connect', () => {
