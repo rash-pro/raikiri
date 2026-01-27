@@ -18,9 +18,13 @@ if [ -z "$YOUTUBE_LIVE_ID" ]; then
     YOUTUBE_CHANNEL_ID=${input_yt_chan:-$YOUTUBE_CHANNEL_ID}
 fi
 
+read -p "Enter Ignored Users (comma separated, e.g. Nightbot,StreamElements) [${IGNORED_USERS}]: " input_ignored
+IGNORED_USERS=${input_ignored:-$IGNORED_USERS}
+
 echo "TWITCH_CHANNELS=$TWITCH_CHANNELS" > .env
 echo "YOUTUBE_LIVE_ID=$YOUTUBE_LIVE_ID" >> .env
 echo "YOUTUBE_CHANNEL_ID=$YOUTUBE_CHANNEL_ID" >> .env
+echo "IGNORED_USERS=$IGNORED_USERS" >> .env
 
 echo "Building and starting container..."
 docker-compose up --build -d

@@ -17,9 +17,13 @@ if "%YOUTUBE_LIVE_ID%"=="" (
     if not "%input_yt_chan%"=="" set YOUTUBE_CHANNEL_ID=%input_yt_chan%
 )
 
+set /p input_ignored="Enter Ignored Users (comma separated) [%IGNORED_USERS%]: "
+if not "%input_ignored%"=="" set IGNORED_USERS=%input_ignored%
+
 echo TWITCH_CHANNELS=%TWITCH_CHANNELS% > .env
 echo YOUTUBE_LIVE_ID=%YOUTUBE_LIVE_ID% >> .env
 echo YOUTUBE_CHANNEL_ID=%YOUTUBE_CHANNEL_ID% >> .env
+echo IGNORED_USERS=%IGNORED_USERS% >> .env
 
 echo Building and starting container...
 docker-compose up --build -d

@@ -28,9 +28,12 @@ const io = new Server(server);
 // Services
 const services = [];
 
+// Config
+const ignoredUsers = process.env.IGNORED_USERS ? process.env.IGNORED_USERS.split(',').map(u => u.trim().toLowerCase()) : [];
+
 if (process.env.TWITCH_CHANNELS) {
     const channels = process.env.TWITCH_CHANNELS.split(',');
-    const twitchService = new TwitchService(channels, io);
+    const twitchService = new TwitchService(channels, io, ignoredUsers);
     twitchService.connect();
     services.push(twitchService);
     logger.info(`Initialized Twitch service for: ${channels.join(', ')}`);
@@ -48,7 +51,7 @@ if (process.env.YOUTUBE_LIVE_ID) {
 }
 
 if (ytIdentifier.liveId || ytIdentifier.channelId) {
-    const youtubeService = new YouTubeService(ytIdentifier, io);
+    const youtubeService = new YouTubeService(ytIdentifier, io, ignoredUsers);
     youtubeService.connect();
     services.push(youtubeService);
     logger.info(`Initialized YouTube service`);
@@ -65,6 +68,12 @@ app.get('/', (req, res) => {
 // Socket.io
 io.on('connection', (socket) => {
     logger.info('A client connected');
+
+    // Send public config
+    socket.emit('config', {
+        twitchChannels: process.env.TWITCH_CHANNELS ? process.env.TWITCH_CHANNELS.split(',') : [],
+        youtubeId: process.env.YOUTUBE_LIVE_ID || process.env.YOUTUBE_CHANNEL_ID || ''
+    });
 
     // Replay logs for debug
     LogBuffer.replay(socket);

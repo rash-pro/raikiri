@@ -3,8 +3,9 @@ const winston = require('winston');
 const { escapeHtml } = require('../utils/sanitizer');
 
 class TwitchService {
-    constructor(channels, io) {
+    constructor(channels, io, ignoredUsers = []) {
         this.io = io;
+        this.ignoredUsers = ignoredUsers;
         this.client = new tmi.Client({
             connection: {
                 secure: true,
@@ -27,6 +28,9 @@ class TwitchService {
             // Ignore self-messages (though unlikely with anonymous)
             if (self) return;
 
+            const user = (tags['display-name'] || tags['username'] || '').toLowerCase();
+            if (this.ignoredUsers.includes(user)) return;
+
             const chatMessage = {
                 platform: 'twitch',
                 id: tags['id'],
@@ -34,7 +38,8 @@ class TwitchService {
                 content: this.parseMessage(message, tags.emotes), // Parse emotes
                 color: tags['color'],
                 timestamp: new Date().toISOString(),
-                badges: tags['badges-raw'],
+                badges: this.parseBadges(tags.badges), // Normalize badges
+                badgeInfo: tags['badges-raw'], // Keep raw for debugging
                 isHtml: true // Flag to tell client to render as HTML
             };
 
@@ -110,6 +115,16 @@ class TwitchService {
         result = escapeHtml(head) + result;
 
         return result;
+    }
+
+    parseBadges(badges) {
+        if (!badges) return [];
+        const normalized = [];
+        if (badges.moderator) normalized.push('moderator');
+        if (badges.broadcaster) normalized.push('owner');
+        if (badges.subscriber) normalized.push('subscriber');
+        if (badges.vip) normalized.push('vip');
+        return normalized;
     }
 
     async connect() {

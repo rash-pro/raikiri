@@ -84,6 +84,11 @@ body {
     line-height: 1.4;
 }
 
+.highlight {
+    background: rgba(180, 20, 20, 0.6) !important;
+    border-left: 4px solid red;
+}
+
 .platform-badge {
     margin-right: 6px;
     font-weight: bold;
@@ -101,6 +106,11 @@ body {
 .platform-youtube .platform-badge {
     background-color: var(--youtube-color);
     color: white;
+}
+
+.user-badge {
+    margin-right: 4px;
+    font-size: 0.9em;
 }
 
 .author {

@@ -12,6 +12,11 @@ if (isDebug) {
     document.body.appendChild(debugContainer);
 }
 
+let appConfig = {
+    twitchChannels: [],
+    youtubeId: ''
+};
+
 // Max messages to keep in the DOM
 const MAX_MESSAGES = 100;
 
@@ -20,11 +25,38 @@ function appendMessage(data) {
     msgDiv.classList.add('chat-message', `platform-${data.platform}`);
     if (data.id) msgDiv.dataset.id = data.id;
 
+    // Check for Highlighting
+    if (shouldHighlight(data.content)) {
+        msgDiv.classList.add('highlight');
+    }
+
     // Platform Badge
     const badge = document.createElement('span');
     badge.classList.add('platform-badge');
     badge.innerText = data.platform === 'twitch' ? 'TW' : 'YT';
     msgDiv.appendChild(badge);
+
+    badge.innerText = data.platform === 'twitch' ? 'TW' : 'YT';
+    msgDiv.appendChild(badge);
+
+    // User Badges
+    if (data.badges && Array.isArray(data.badges)) {
+        data.badges.forEach(type => {
+            const badgeSpan = document.createElement('span');
+            badgeSpan.classList.add('user-badge', `badge-${type}`);
+
+            // Icons
+            switch (type) {
+                case 'owner': badgeSpan.textContent = '👑'; break;
+                case 'moderator': badgeSpan.textContent = '🛡️'; break;
+                case 'vip': badgeSpan.textContent = '💎'; break;
+                case 'subscriber': badgeSpan.textContent = '⭐'; break;
+                default: badgeSpan.textContent = '';
+            }
+
+            if (badgeSpan.textContent) msgDiv.appendChild(badgeSpan);
+        });
+    }
 
     // Author
     const authorSpan = document.createElement('span');
@@ -113,3 +145,22 @@ socket.on('debug_log', (data) => {
 socket.on('connect', () => {
     console.log('Connected to chat server');
 });
+
+socket.on('config', (config) => {
+    appConfig = config;
+    // Normalize config
+    appConfig.twitchChannels = appConfig.twitchChannels.map(c => c.toLowerCase());
+});
+
+function shouldHighlight(content) {
+    const lower = content.toLowerCase();
+
+    // Check Twitch Channels
+    for (const chan of appConfig.twitchChannels) {
+        if (lower.includes(chan)) return true;
+    }
+
+    // Hardcoded "Streamer" keywords could go here, 
+    // but verifying against channel name is safest default.
+    return false;
+}

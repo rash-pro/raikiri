@@ -8,4 +8,5 @@ services:
       - TWITCH_CHANNELS=${TWITCH_CHANNELS}
       - YOUTUBE_LIVE_ID=${YOUTUBE_LIVE_ID}
       - YOUTUBE_CHANNEL_ID=${YOUTUBE_CHANNEL_ID}
+      - IGNORED_USERS=${IGNORED_USERS}
     restart: unless-stopped

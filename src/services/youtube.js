@@ -5,9 +5,10 @@ const LogBuffer = require('../logBuffer');
 const { escapeHtml } = require('../utils/sanitizer');
 
 class YouTubeService {
-    constructor(identifier, io) {
+    constructor(identifier, io, ignoredUsers = []) {
         this.io = io;
-        // Identifier can be channelId or liveId. 
+        this.ignoredUsers = ignoredUsers;
+        // Identifier can be channelId or liveId.  
         // For simplicity in this version, we will assume it might be passed as { channelId: '...' } or { liveId: '...' }
         // If it's a string, we'll try to guess or let the user specify in the config later.
         // For now, let's assume the constructor receives an object or string.
@@ -41,6 +42,9 @@ class YouTubeService {
 
     setupListeners() {
         this.liveChat.on('chat', (chatItem) => {
+            const user = (chatItem.author.name || '').toLowerCase();
+            if (this.ignoredUsers.includes(user)) return;
+
             const chatMessage = {
                 platform: 'youtube',
                 id: chatItem.id,
@@ -50,6 +54,7 @@ class YouTubeService {
                 content: this.parseMessage(chatItem.message),
                 color: null, // YouTube doesn't expose user color in the same way
                 timestamp: new Date(chatItem.timestamp).toISOString(),
+                badges: this.parseBadges(chatItem.author),
                 authorDetails: chatItem.author, // Extra details if needed
                 isHtml: true
             };
@@ -95,6 +100,14 @@ class YouTubeService {
             // Case 3: Text
             return escapeHtml(run.text || '');
         }).join('');
+    }
+
+    parseBadges(author) {
+        const badges = [];
+        if (author.isChatOwner) badges.push('owner');
+        if (author.isChatModerator) badges.push('moderator');
+        if (author.isChatSponsor) badges.push('subscriber'); // Member
+        return badges;
     }
 
     async connect() {
