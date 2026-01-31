@@ -10,6 +10,7 @@ const isDebug = urlParams.get('debug') === 'true';
 if (isDebug) {
     debugContainer.id = 'debug-panel';
     document.body.appendChild(debugContainer);
+    statusContainer.classList.add('visible'); // Show status indicators only in debug
 }
 
 let appConfig = {
@@ -164,3 +165,78 @@ function shouldHighlight(content) {
     // but verifying against channel name is safest default.
     return false;
 }
+// Web Config Logic
+const configBtn = document.getElementById('config-btn');
+const configModal = document.getElementById('config-modal');
+const configForm = document.getElementById('config-form');
+const cancelBtn = document.getElementById('cancel-btn');
+const saveBtn = document.getElementById('save-btn');
+const modalBackdrop = document.querySelector('.modal-backdrop');
+
+// Inputs
+const inputTwitch = document.getElementById('twitchChannels');
+const inputYouTube = document.getElementById('youtubeId');
+const inputIgnored = document.getElementById('ignoredUsers');
+
+function openModal() {
+    configModal.classList.remove('hidden');
+    // Fetch latest config to populate
+    fetch('/api/config')
+        .then(res => res.json())
+        .then(config => {
+            inputTwitch.value = config.twitchChannels ? config.twitchChannels.join(', ') : '';
+            inputYouTube.value = config.youtube.liveId || config.youtube.channelId || '';
+            inputIgnored.value = config.ignoredUsers ? config.ignoredUsers.join(', ') : '';
+        })
+        .catch(err => console.error('Error fetching config:', err));
+}
+
+function closeModal() {
+    configModal.classList.add('hidden');
+}
+
+configBtn.addEventListener('click', openModal);
+cancelBtn.addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', closeModal);
+
+configForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const originalBtnText = saveBtn.innerText;
+    saveBtn.innerText = 'Saving...';
+    saveBtn.disabled = true;
+
+    const newConfig = {
+        twitchChannels: inputTwitch.value.split(',').map(s => s.trim()).filter(s => s),
+        youtube: {
+            // Simple heuristic: if it starts with UC, it's a channel, else liveId/videoId
+            // Actually, let's just send it as liveId for now or let server decide.
+            // But our server logic splits identifiers. Let's assume liveId if not clear.
+            liveId: inputYouTube.value.trim().startsWith('UC') ? '' : inputYouTube.value.trim(),
+            channelId: inputYouTube.value.trim().startsWith('UC') ? inputYouTube.value.trim() : ''
+        },
+        ignoredUsers: inputIgnored.value.split(',').map(s => s.trim().toLowerCase()).filter(s => s)
+    };
+
+    try {
+        const res = await fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newConfig)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            closeModal();
+            // Optional: Show toast or feedback
+        } else {
+            alert('Error saving config: ' + data.message);
+        }
+    } catch (err) {
+        console.error('Error saving config:', err);
+        alert('Network error saving config');
+    } finally {
+        saveBtn.innerText = originalBtnText;
+        saveBtn.disabled = false;
+    }
+});

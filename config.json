@@ -1,0 +1,10 @@
+{
+  "twitchChannels": [
+    "shroud"
+  ],
+  "youtube": {
+    "liveId": "test_vid_id_2",
+    "channelId": ""
+  },
+  "ignoredUsers": []
+}

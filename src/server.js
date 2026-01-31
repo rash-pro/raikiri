@@ -6,6 +6,7 @@ const TwitchService = require('./services/twitch');
 const YouTubeService = require('./services/youtube');
 const LogBuffer = require('./logBuffer');
 const winston = require('winston');
+const configManager = require('./utils/configManager');
 
 // Logger setup
 const logger = winston.createLogger({
@@ -25,44 +26,91 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Services
-const services = [];
-
-// Config
-const ignoredUsers = process.env.IGNORED_USERS ? process.env.IGNORED_USERS.split(',').map(u => u.trim().toLowerCase()) : [];
-
-if (process.env.TWITCH_CHANNELS) {
-    const channels = process.env.TWITCH_CHANNELS.split(',');
-    const twitchService = new TwitchService(channels, io, ignoredUsers);
-    twitchService.connect();
-    services.push(twitchService);
-    logger.info(`Initialized Twitch service for: ${channels.join(', ')}`);
-}
-
-// YouTube Service Init
-let ytIdentifier = {};
-if (process.env.YOUTUBE_LIVE_ID) {
-    ytIdentifier = { liveId: process.env.YOUTUBE_LIVE_ID };
-} else if (process.env.YOUTUBE_CHANNEL_ID) {
-    ytIdentifier = { channelId: process.env.YOUTUBE_CHANNEL_ID };
-} else if (process.env.YOUTUBE_ID) {
-    // Fallback for legacy or loose config
-    ytIdentifier = { liveId: process.env.YOUTUBE_ID };
-}
-
-if (ytIdentifier.liveId || ytIdentifier.channelId) {
-    const youtubeService = new YouTubeService(ytIdentifier, io, ignoredUsers);
-    youtubeService.connect();
-    services.push(youtubeService);
-    logger.info(`Initialized YouTube service`);
-}
-
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
+// Services Management
+let services = [];
+
+/**
+ * Stop and clear all running services
+ */
+const stopServices = () => {
+    logger.info('Stopping services...');
+    services.forEach(service => {
+        if (service.disconnect) service.disconnect();
+    });
+    services = [];
+};
+
+/**
+ * Start services based on current config
+ */
+const startServices = () => {
+    stopServices(); // Ensure clean slate
+    const config = configManager.get();
+
+    // Twitch
+    if (config.twitchChannels && config.twitchChannels.length > 0) {
+        // filter out empty strings
+        const channels = config.twitchChannels.filter(c => c && c.length > 0);
+        if (channels.length > 0) {
+            const twitchService = new TwitchService(channels, io, config.ignoredUsers);
+            twitchService.connect();
+            services.push(twitchService);
+            logger.info(`Initialized Twitch service for: ${channels.join(', ')}`);
+        }
+    }
+
+    // YouTube
+    const ytIdentifier = {};
+    if (config.youtube.liveId) ytIdentifier.liveId = config.youtube.liveId;
+    if (config.youtube.channelId) ytIdentifier.channelId = config.youtube.channelId;
+
+    if (ytIdentifier.liveId || ytIdentifier.channelId) {
+        const youtubeService = new YouTubeService(ytIdentifier, io, config.ignoredUsers);
+        youtubeService.connect();
+        services.push(youtubeService);
+        logger.info(`Initialized YouTube service`);
+    } else {
+        logger.info('No YouTube configuration found.');
+    }
+};
+
+// Initial Start
+startServices();
 
 // Routes
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// API Routes
+app.get('/api/config', (req, res) => {
+    res.json(configManager.get());
+});
+
+app.post('/api/config', (req, res) => {
+    try {
+        const newConfig = req.body;
+        logger.info('Received new config:', newConfig);
+
+        if (configManager.save(newConfig)) {
+            startServices(); // Restart with new config
+            // Broadcast new config to all clients so they can update UI if needed
+            io.emit('config', {
+                twitchChannels: newConfig.twitchChannels || [],
+                youtubeId: newConfig.youtube.liveId || newConfig.youtube.channelId || ''
+            });
+            res.json({ success: true, message: 'Configuration saved and services restarted.' });
+        } else {
+            res.status(500).json({ success: false, message: 'Failed to save configuration.' });
+        }
+    } catch (error) {
+        logger.error('Error in POST /api/config:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 });
 
 // Socket.io
@@ -70,9 +118,10 @@ io.on('connection', (socket) => {
     logger.info('A client connected');
 
     // Send public config
+    const config = configManager.get();
     socket.emit('config', {
-        twitchChannels: process.env.TWITCH_CHANNELS ? process.env.TWITCH_CHANNELS.split(',') : [],
-        youtubeId: process.env.YOUTUBE_LIVE_ID || process.env.YOUTUBE_CHANNEL_ID || ''
+        twitchChannels: config.twitchChannels || [],
+        youtubeId: config.youtube.liveId || config.youtube.channelId || ''
     });
 
     // Replay logs for debug
@@ -89,4 +138,4 @@ server.listen(PORT, () => {
     logger.info(`Server running on port ${PORT}`);
 });
 
-module.exports = { app, server }; // Export for testing
+module.exports = { app, server };
