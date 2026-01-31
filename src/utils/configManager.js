@@ -13,6 +13,7 @@ class ConfigManager {
                 channelId: ''
             },
             kickChannel: '',
+            tiktokChannel: '',
             ignoredUsers: []
         };
         this.load();
@@ -34,6 +35,10 @@ class ConfigManager {
 
             if (process.env.KICK_CHANNEL) {
                 this.config.kickChannel = process.env.KICK_CHANNEL;
+            }
+
+            if (process.env.TIKTOK_CHANNEL) {
+                this.config.tiktokChannel = process.env.TIKTOK_CHANNEL;
             }
 
             if (process.env.IGNORED_USERS) {

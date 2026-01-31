@@ -1,11 +1,10 @@
 {
-  "twitchChannels": [
-    "lillien_cat"
-  ],
+  "twitchChannels": [],
   "youtube": {
-    "liveId": "XGpb2B6rtdg",
+    "liveId": "",
     "channelId": ""
   },
-  "kickChannel": "xqc",
+  "kickChannel": "",
+  "tiktokChannel": "@soyrossfb",
   "ignoredUsers": []
 }

@@ -16,7 +16,8 @@ if (isDebug) {
 let appConfig = {
     twitchChannels: [],
     youtubeId: '',
-    kickChannel: ''
+    kickChannel: '',
+    tiktokChannel: ''
 };
 
 // Max messages to keep in the DOM
@@ -38,6 +39,7 @@ function appendMessage(data) {
     if (data.platform === 'twitch') badge.innerText = 'TW';
     else if (data.platform === 'youtube') badge.innerText = 'YT';
     else if (data.platform === 'kick') badge.innerText = 'KI';
+    else if (data.platform === 'tiktok') badge.innerText = 'TK';
     msgDiv.appendChild(badge);
 
     // User Badges
@@ -152,6 +154,7 @@ socket.on('config', (config) => {
     // Normalize config
     appConfig.twitchChannels = appConfig.twitchChannels.map(c => c.toLowerCase());
     if (appConfig.kickChannel) appConfig.kickChannel = appConfig.kickChannel.toLowerCase();
+    if (appConfig.tiktokChannel) appConfig.tiktokChannel = appConfig.tiktokChannel.toLowerCase();
 });
 
 function shouldHighlight(data) {
@@ -165,6 +168,13 @@ function shouldHighlight(data) {
 
     // Check Kick Channel
     if (appConfig.kickChannel && contentLower.includes(appConfig.kickChannel)) return true;
+
+    // Check TikTok Channel
+    if (appConfig.tiktokChannel) {
+        // TikTok usernames often start with @, normalize for comparison
+        const tkChan = appConfig.tiktokChannel.startsWith('@') ? appConfig.tiktokChannel.substring(1) : appConfig.tiktokChannel;
+        if (contentLower.includes(tkChan)) return true;
+    }
 
     return false;
 }
@@ -180,6 +190,7 @@ const modalBackdrop = document.querySelector('.modal-backdrop');
 const inputTwitch = document.getElementById('twitchChannels');
 const inputYouTube = document.getElementById('youtubeId');
 const inputKick = document.getElementById('kickChannel');
+const inputTikTok = document.getElementById('tiktokChannel');
 const inputIgnored = document.getElementById('ignoredUsers');
 
 function openModal() {
@@ -191,6 +202,7 @@ function openModal() {
             inputTwitch.value = config.twitchChannels ? config.twitchChannels.join(', ') : '';
             inputYouTube.value = config.youtube.liveId || config.youtube.channelId || '';
             inputKick.value = config.kickChannel || '';
+            inputTikTok.value = config.tiktokChannel || '';
             inputIgnored.value = config.ignoredUsers ? config.ignoredUsers.join(', ') : '';
         })
         .catch(err => console.error('Error fetching config:', err));
@@ -221,6 +233,7 @@ configForm.addEventListener('submit', async (e) => {
             channelId: inputYouTube.value.trim().startsWith('UC') ? inputYouTube.value.trim() : ''
         },
         kickChannel: inputKick.value.trim(),
+        tiktokChannel: inputTikTok.value.trim(),
         ignoredUsers: inputIgnored.value.split(',').map(s => s.trim().toLowerCase()).filter(s => s)
     };
 

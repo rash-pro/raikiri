@@ -5,6 +5,7 @@ const path = require('path');
 const TwitchService = require('./services/twitch');
 const YouTubeService = require('./services/youtube');
 const KickService = require('./services/kick');
+const TikTokService = require('./services/tiktok');
 const LogBuffer = require('./logBuffer');
 const winston = require('winston');
 const configManager = require('./utils/configManager');
@@ -86,6 +87,16 @@ const startServices = () => {
     } else {
         logger.info('No Kick configuration found.');
     }
+
+    // TikTok
+    if (config.tiktokChannel) {
+        const tiktokService = new TikTokService(config.tiktokChannel, io, config.ignoredUsers);
+        tiktokService.connect();
+        services.push(tiktokService);
+        logger.info(`Initialized TikTok service for: ${config.tiktokChannel}`);
+    } else {
+        logger.info('No TikTok configuration found.');
+    }
 };
 
 // Initial Start
@@ -112,7 +123,8 @@ app.post('/api/config', (req, res) => {
             io.emit('config', {
                 twitchChannels: newConfig.twitchChannels || [],
                 youtubeId: newConfig.youtube.liveId || newConfig.youtube.channelId || '',
-                kickChannel: newConfig.kickChannel || ''
+                kickChannel: newConfig.kickChannel || '',
+                tiktokChannel: newConfig.tiktokChannel || ''
             });
             res.json({ success: true, message: 'Configuration saved and services restarted.' });
         } else {
@@ -133,7 +145,8 @@ io.on('connection', (socket) => {
     socket.emit('config', {
         twitchChannels: config.twitchChannels || [],
         youtubeId: config.youtube.liveId || config.youtube.channelId || '',
-        kickChannel: config.kickChannel || ''
+        kickChannel: config.kickChannel || '',
+        tiktokChannel: config.tiktokChannel || ''
     });
 
     // Replay logs for debug
