@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const path = require('path');
 const TwitchService = require('./services/twitch');
 const YouTubeService = require('./services/youtube');
+const KickService = require('./services/kick');
 const LogBuffer = require('./logBuffer');
 const winston = require('winston');
 const configManager = require('./utils/configManager');
@@ -76,6 +77,15 @@ const startServices = () => {
     } else {
         logger.info('No YouTube configuration found.');
     }
+    // Kick
+    if (config.kickChannel) {
+        const kickService = new KickService(config.kickChannel, io, config.ignoredUsers);
+        kickService.connect();
+        services.push(kickService);
+        logger.info(`Initialized Kick service for: ${config.kickChannel}`);
+    } else {
+        logger.info('No Kick configuration found.');
+    }
 };
 
 // Initial Start
@@ -101,7 +111,8 @@ app.post('/api/config', (req, res) => {
             // Broadcast new config to all clients so they can update UI if needed
             io.emit('config', {
                 twitchChannels: newConfig.twitchChannels || [],
-                youtubeId: newConfig.youtube.liveId || newConfig.youtube.channelId || ''
+                youtubeId: newConfig.youtube.liveId || newConfig.youtube.channelId || '',
+                kickChannel: newConfig.kickChannel || ''
             });
             res.json({ success: true, message: 'Configuration saved and services restarted.' });
         } else {
@@ -121,7 +132,8 @@ io.on('connection', (socket) => {
     const config = configManager.get();
     socket.emit('config', {
         twitchChannels: config.twitchChannels || [],
-        youtubeId: config.youtube.liveId || config.youtube.channelId || ''
+        youtubeId: config.youtube.liveId || config.youtube.channelId || '',
+        kickChannel: config.kickChannel || ''
     });
 
     // Replay logs for debug

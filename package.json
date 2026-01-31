@@ -1,6 +1,6 @@
 {
   "name": "raikiri",
-  "version": "1.0.0",
+  "version": "0.4.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "axios": "^1.13.4",
     "express": "^5.2.1",
+    "pusher-js": "^8.4.0",
     "socket.io": "^4.8.3",
     "tmi.js": "^1.8.5",
     "winston": "^3.19.0",

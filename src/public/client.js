@@ -15,7 +15,8 @@ if (isDebug) {
 
 let appConfig = {
     twitchChannels: [],
-    youtubeId: ''
+    youtubeId: '',
+    kickChannel: ''
 };
 
 // Max messages to keep in the DOM
@@ -27,17 +28,16 @@ function appendMessage(data) {
     if (data.id) msgDiv.dataset.id = data.id;
 
     // Check for Highlighting
-    if (shouldHighlight(data.content)) {
+    if (shouldHighlight(data)) {
         msgDiv.classList.add('highlight');
     }
 
     // Platform Badge
     const badge = document.createElement('span');
     badge.classList.add('platform-badge');
-    badge.innerText = data.platform === 'twitch' ? 'TW' : 'YT';
-    msgDiv.appendChild(badge);
-
-    badge.innerText = data.platform === 'twitch' ? 'TW' : 'YT';
+    if (data.platform === 'twitch') badge.innerText = 'TW';
+    else if (data.platform === 'youtube') badge.innerText = 'YT';
+    else if (data.platform === 'kick') badge.innerText = 'KI';
     msgDiv.appendChild(badge);
 
     // User Badges
@@ -151,18 +151,21 @@ socket.on('config', (config) => {
     appConfig = config;
     // Normalize config
     appConfig.twitchChannels = appConfig.twitchChannels.map(c => c.toLowerCase());
+    if (appConfig.kickChannel) appConfig.kickChannel = appConfig.kickChannel.toLowerCase();
 });
 
-function shouldHighlight(content) {
-    const lower = content.toLowerCase();
+function shouldHighlight(data) {
+    const contentLower = data.content.toLowerCase();
+    const userLower = data.user.toLowerCase();
 
     // Check Twitch Channels
     for (const chan of appConfig.twitchChannels) {
-        if (lower.includes(chan)) return true;
+        if (contentLower.includes(chan)) return true;
     }
 
-    // Hardcoded "Streamer" keywords could go here, 
-    // but verifying against channel name is safest default.
+    // Check Kick Channel
+    if (appConfig.kickChannel && contentLower.includes(appConfig.kickChannel)) return true;
+
     return false;
 }
 // Web Config Logic
@@ -176,6 +179,7 @@ const modalBackdrop = document.querySelector('.modal-backdrop');
 // Inputs
 const inputTwitch = document.getElementById('twitchChannels');
 const inputYouTube = document.getElementById('youtubeId');
+const inputKick = document.getElementById('kickChannel');
 const inputIgnored = document.getElementById('ignoredUsers');
 
 function openModal() {
@@ -186,6 +190,7 @@ function openModal() {
         .then(config => {
             inputTwitch.value = config.twitchChannels ? config.twitchChannels.join(', ') : '';
             inputYouTube.value = config.youtube.liveId || config.youtube.channelId || '';
+            inputKick.value = config.kickChannel || '';
             inputIgnored.value = config.ignoredUsers ? config.ignoredUsers.join(', ') : '';
         })
         .catch(err => console.error('Error fetching config:', err));
@@ -215,6 +220,7 @@ configForm.addEventListener('submit', async (e) => {
             liveId: inputYouTube.value.trim().startsWith('UC') ? '' : inputYouTube.value.trim(),
             channelId: inputYouTube.value.trim().startsWith('UC') ? inputYouTube.value.trim() : ''
         },
+        kickChannel: inputKick.value.trim(),
         ignoredUsers: inputIgnored.value.split(',').map(s => s.trim().toLowerCase()).filter(s => s)
     };
 

@@ -1,10 +1,11 @@
 {
   "twitchChannels": [
-    "shroud"
+    "lillien_cat"
   ],
   "youtube": {
-    "liveId": "test_vid_id_2",
+    "liveId": "XGpb2B6rtdg",
     "channelId": ""
   },
+  "kickChannel": "xqc",
   "ignoredUsers": []
 }

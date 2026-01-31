@@ -12,6 +12,7 @@ class ConfigManager {
                 liveId: '',
                 channelId: ''
             },
+            kickChannel: '',
             ignoredUsers: []
         };
         this.load();
@@ -29,6 +30,10 @@ class ConfigManager {
             }
             if (process.env.YOUTUBE_CHANNEL_ID) {
                 this.config.youtube.channelId = process.env.YOUTUBE_CHANNEL_ID;
+            }
+
+            if (process.env.KICK_CHANNEL) {
+                this.config.kickChannel = process.env.KICK_CHANNEL;
             }
 
             if (process.env.IGNORED_USERS) {

@@ -112,6 +112,11 @@ body {
     color: white;
 }
 
+.platform-kick .platform-badge {
+    background-color: #53fc18;
+    color: black;
+}
+
 .user-badge {
     margin-right: 4px;
     font-size: 0.9em;
