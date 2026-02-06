@@ -1,5 +1,7 @@
 {
-  "twitchChannels": [],
+  "twitchChannels": [
+    "caseoh_"
+  ],
   "youtube": {
     "liveId": "",
     "channelId": ""
