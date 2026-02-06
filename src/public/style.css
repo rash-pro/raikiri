@@ -1,7 +1,7 @@
 :root {
     --bg-color: transparent;
     --text-color: #ffffff;
-    --text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    --text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0px 0px 5px rgba(0, 0, 0, 0.5);
     --font-family: 'Inter', sans-serif;
     --twitch-color: #9146FF;
     --youtube-color: #FF0000;
@@ -76,8 +76,9 @@ body {
 }
 
 .chat-message {
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.4);
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.7);
+    /* Increased opacity for better contrast */
     border-radius: 8px;
     animation: fadeIn 0.3s ease;
     text-shadow: var(--text-shadow);
@@ -135,6 +136,8 @@ body {
 
 .content {
     word-break: break-word;
+    font-weight: 500;
+    /* Slightly bolder for readability */
 }
 
 .emote {
