@@ -34,11 +34,24 @@ Raikiri will be available at `http://localhost:30000`.
 
 If you prefer not to use Docker, you will need [Node.js](https://nodejs.org/) installed:
 
+<<<<<<< HEAD
 1. Install dependencies:
    ```bash
    npm install
    ```
 2. Start the server:
+=======
+1. **Install dependencies and setup environment**:
+   - On **Linux/macOS**:
+     ```bash
+     chmod +x setup.sh && ./setup.sh
+     ```
+   - On **Windows**:
+     ```batch
+     setup.bat
+     ```
+2. **Start the server**:
+>>>>>>> d3abc54 (chore: release v1.0.0)
    ```bash
    npm start
    ```
