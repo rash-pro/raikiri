@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raikiri Admin Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h2>Raikiri <span>v2.0</span></h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="#platforms" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    Platforms Connect
+                </a>
+                <a href="#tts" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                    Audio & TTS
+                </a>
+                <a href="#overlays" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 12 12 17 22 12"></polyline><polyline points="2 17 12 22 22 17"></polyline></svg>
+                    Overlays
+                </a>
+            </nav>
+        </aside>
+        
+        <main class="content">
+            <header class="topbar">
+                <div class="title-area">
+                    <h1 id="page-title">Platforms Setup</h1>
+                    <p id="page-subtitle">Connect your streaming accounts for real-time events.</p>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="saveBtn">Save Configuration</button>
+                </div>
+            </header>
+
+            <div class="scroll-area">
+                <!-- PLATFORMS SECTION -->
+                <section id="section-platforms" class="view-section active">
+                    <div class="card platform-card twitch">
+                        <div class="card-header">
+                            <div class="platform-icon">Tw</div>
+                            <h3>Twitch Auth</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Client ID</label>
+                                <input type="text" id="config-twitchClientId" placeholder="Your Twitch Application Client ID">
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-twitch" id="authTwitchBtn">Authenticate Device</button>
+                            </div>
+                            <div id="twitchAuthDisplay" style="display:none; margin-top: 15px;">
+                                <p>Go to <a href="#" id="twitchVerifyUri" target="_blank" style="color:var(--twitch-color);"><b>twitch.tv/activate</b></a> and enter the code:</p>
+                                <h1 style="letter-spacing:4px; font-weight:800; font-family:'Outfit'" id="twitchUserCode">ABCD-EFGH</h1>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card platform-card youtube">
+                        <div class="card-header">
+                            <div class="platform-icon">Yt</div>
+                            <h3>YouTube Live</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Channel ID or Video ID</label>
+                                <input type="text" id="config-youtubeChannelId" placeholder="UCxxxxxx / Video ID">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card platform-card kick">
+                        <div class="card-header">
+                            <div class="platform-icon">Ki</div>
+                            <h3>Kick Connector</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Channel Username</label>
+                                <input type="text" id="config-kickUsername" placeholder="kickUsername">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card platform-card tiktok">
+                        <div class="card-header">
+                            <div class="platform-icon">Tt</div>
+                            <h3>TikTok Live</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>TikTok @Username</label>
+                                <input type="text" id="config-tiktokUsername" placeholder="@youraccount">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TTS SECTION -->
+                <section id="section-tts" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Cloud TTS Settings</h3>
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <button class="btn btn-secondary" id="testTtsBtn" style="padding: 5px 15px;">Test Voice</button>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="config-ttsEnabled">
+                                    <label for="config-ttsEnabled"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Voice Mode</label>
+                                    <select id="config-ttsVoice">
+                                        <option value="es-MX-DaliaNeural">es-MX Dalia (Female)</option>
+                                        <option value="es-MX-JorgeNeural">es-MX Jorge (Male)</option>
+                                        <option value="en-US-AriaNeural">en-US Aria (Female)</option>
+                                        <option value="en-US-GuyNeural">en-US Guy (Male)</option>
+                                        <option value="ja-JP-NanamiNeural">ja-JP Nanami (Female)</option>
+                                        <option value="ja-JP-KeitaNeural">ja-JP Keita (Male)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Audio Output Strategy</label>
+                                    <select id="config-audioMode">
+                                        <option value="websocket">Browser WebSockets (Cross-platform)</option>
+                                        <option value="pulseaudio">Hardware ALSA/PulseAudio (Linux Native)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Minimum Bits to trigger TTS</label>
+                                    <input type="number" id="config-ttsMinBits" min="1" max="10000" step="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Minimum Min Sub Tier</label>
+                                    <select id="config-ttsSubTier">
+                                        <option value="1">Tier 1 & Up</option>
+                                        <option value="2">Tier 2 & Up</option>
+                                        <option value="3">Tier 3 Only</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Master Volume (%)</label>
+                                <input type="range" id="config-audioVolume" min="0" max="100" class="slider">
+                                <div id="volumeVal" style="text-align:right; margin-top:5px; opacity:0.7">50%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Advanced TTS Triggers</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <div style="display:flex; justify-content:space-between;">
+                                        <label>Twitch Channel Points Reward</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="config-ttsRewardEnabled">
+                                            <label for="config-ttsRewardEnabled"></label>
+                                        </div>
+                                    </div>
+                                    <input type="text" id="config-ttsRewardName" placeholder="Exact name of Custom Reward" style="margin-top: 10px;">
+                                </div>
+                                <div class="form-group">
+                                    <div style="display:flex; justify-content:space-between;">
+                                        <label>Custom Chat Command</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="config-ttsCmdEnabled">
+                                            <label for="config-ttsCmdEnabled"></label>
+                                        </div>
+                                    </div>
+                                    <input type="text" id="config-ttsCmdPrefix" placeholder="Command Prefix (e.g. !voz)" style="margin-top: 10px;">
+                                    <div style="display:flex; justify-content: space-between; margin-top: 10px; font-size: 13px;">
+                                        <label><input type="checkbox" id="config-ttsCmdHost"> Host</label>
+                                        <label><input type="checkbox" id="config-ttsCmdMod"> Mod</label>
+                                        <label><input type="checkbox" id="config-ttsCmdVip"> VIP</label>
+                                        <label><input type="checkbox" id="config-ttsCmdSub"> Sub</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- OVERLAYS SECTION -->
+                <section id="section-overlays" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Chat Appearance</h3>
+                        </div>
+                        <div class="card-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Chat Theme</label>
+                                <select id="config-chatTheme">
+                                    <option value="glassmorphism">Glassmorphism (Recomendado)</option>
+                                    <option value="dark">Dark Theme (Standard)</option>
+                                    <option value="light">Light Theme</option>
+                                    <option value="minimal">Minimal (Texto sin bloque)</option>
+                                    <option value="ffvi">Classic FFVI RPG (Retro)</option>
+                                    <option value="cyberpurple">Cyberpunk Purple (Neon)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Font Size (px)</label>
+                                <input type="number" id="config-chatFontSize" min="8" max="40" value="15">
+                            </div>
+                            <div class="form-group">
+                                <label>Hide Messages After (Seconds)</label>
+                                <input type="number" id="config-chatHideAfter" min="0" max="120" value="30">
+                                <small style="display:inline-block;margin-top:5px;opacity:0.7">0 to never hide</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Show Setup Animations</label>
+                                <select id="config-chatAnimations">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Browser Source URLs</h3>
+                        </div>
+                        <div class="card-body">
+                            <p style="margin-bottom:20px; opacity:0.8;">Copy these URLs and paste them into OBS as Browser Sources. Make sure to set the resolution to 1920x1080 (for Alerts) or your desired height (for Chat).</p>
+                            
+                            <div class="url-copy-box">
+                                <div>
+                                    <h4>Chat Overlay</h4>
+                                    <span class="url">http://localhost:30001/overlay/chat/</span>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/chat/')">Copy</button>
+                                    <button class="btn btn-secondary" id="testChatBtn" style="border-color:var(--primary);">Test Chat</button>
+                                </div>
+                            </div>
+                            
+                            <div class="url-copy-box">
+                                <div>
+                                    <h4>Alerts Overlay</h4>
+                                    <span class="url">http://localhost:30001/overlay/alerts/</span>
+                                </div>
+                                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/alerts/')">Copy</button>
+                            </div>
+                            
+                            <div class="url-copy-box">
+                                <div>
+                                    <h4>Audio Output (If WebSockets)</h4>
+                                    <span class="url">http://localhost:30001/audio/</span>
+                                </div>
+                                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('http://localhost:30001/audio/')">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADVANCED ALERTS SECTION OVERLAY -->
+                    <div class="card" style="margin-top:20px;">
+                        <div class="card-header">
+                            <h3>Advanced Alerts System</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row" style="margin-bottom: 20px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label>Select Alert Event</label>
+                                    <select id="config-alertType" onchange="loadAlertConfigUI()">
+                                        <option value="follow">New Follower</option>
+                                        <option value="subscription">New Subscriber</option>
+                                        <option value="bits">Bits (Cheer)</option>
+                                        <option value="raid">Raid</option>
+                                        <option value="superchat">Superchat</option>
+                                        <option value="gift">Gifted Subs</option>
+                                        <option value="channel_points">Custom Reward</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display:flex; align-items:flex-end;">
+                                    <button class="btn btn-primary" onclick="testCurrentAlert()">Test Selected Alert</button>
+                                </div>
+                            </div>
+
+                            <div style="border:1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <div style="display:flex; justify-content:space-between;">
+                                            <label>Enable this Alert?</label>
+                                            <div class="toggle-switch">
+                                                <input type="checkbox" id="config-alertEnabled">
+                                                <label for="config-alertEnabled"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Voice Override (Leave empty for default TTS)</label>
+                                        <select id="config-alertVoice">
+                                            <option value="">-- Use Default Cloud Voice --</option>
+                                            <option value="es-MX-DaliaNeural">es-MX Dalia (Female)</option>
+                                            <option value="es-MX-JorgeNeural">es-MX Jorge (Male)</option>
+                                            <option value="en-US-AriaNeural">en-US Aria (Female)</option>
+                                            <option value="en-US-GuyNeural">en-US Guy (Male)</option>
+                                            <option value="ja-JP-NanamiNeural">ja-JP Nanami (Female)</option>
+                                            <option value="ja-JP-KeitaNeural">ja-JP Keita (Male)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Alert Visual Theme</label>
+                                        <select id="config-alertTheme">
+                                            <option value="cyberpurple">Cyberpunk Purple</option>
+                                            <option value="ffvi">Final Fantasy VI</option>
+                                            <option value="glassmorphism">Glassmorphism (Default)</option>
+                                            <option value="dark">Dark Solid</option>
+                                            <option value="light">Light Solid</option>
+                                            <option value="minimal">Minimal Text</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Audio SFX URL (e.g. /media/sound.mp3)</label>
+                                        <input type="text" id="config-alertAudioUrl" placeholder="/media/example.mp3">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>GIF / Image URL (e.g. /media/alert.gif)</label>
+                                        <input type="text" id="config-alertGifUrl" placeholder="/media/dance.gif">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Message Template (Use {user}, {amount}, {tier}, {message})</label>
+                                    <input type="text" id="config-alertMessageTemplate" placeholder="¡{user} ha donado {amount} bits!">
+                                    <small style="opacity: 0.7; margin-top:5px; display:inline-block;">Leave blank to use default fallback texts.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">Saved Successfully!</div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

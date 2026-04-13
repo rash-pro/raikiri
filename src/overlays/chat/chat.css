@@ -1,0 +1,240 @@
+:root {
+    --bg-color: rgba(20, 20, 23, 0.75);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --text-color: #ffffff;
+    --text-secondary: #a0a0a0;
+    --border-radius: 8px;
+    --chat-font-size: 15px;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    background-color: transparent; /* Transparent for OBS */
+    color: var(--text-color);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: var(--chat-font-size);
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+#chat-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+    height: 100vh;
+    padding: 10px;
+    box-sizing: border-box;
+    gap: 8px;
+}
+
+/* Glassmorphism message styling */
+.message {
+    background: var(--bg-color);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 10px 12px;
+    word-wrap: break-word;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.slide-in {
+    transform: translateX(20px);
+    opacity: 0;
+}
+
+.message-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+
+.username {
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+}
+
+.platform-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.9;
+}
+
+.message-content {
+    font-weight: 400;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+}
+
+.emote {
+    height: 1.5em;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
+/* Badge Styling */
+.badges {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.badge-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+}
+
+.badge-text {
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.15);
+    color: white;
+}
+
+.badge-owner { background: #e74c3c; }
+.badge-moderator { background: #2ecc71; }
+.badge-subscriber { background: #f1c40f; color: black; }
+.badge-vip { background: #9b59b6; }
+
+/* Theming Setup */
+
+/* Glassmorphism is default via .message */
+
+/* Dark Theme */
+.theme-dark .message {
+    background: #18181b;
+    border: 1px solid #303032;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-radius: 4px;
+}
+
+/* Light Theme */
+.theme-light .message {
+    background: #ffffff;
+    color: #0e0e10;
+    border: 1px solid #e8e8e8;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-radius: 4px;
+}
+.theme-light .message-content, .theme-light .username {
+    text-shadow: none;
+}
+
+/* Minimal Theme: No background */
+.theme-minimal .message {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 2px 4px;
+}
+.theme-minimal .message-content {
+    font-weight: 600; /* Bolder text since it relies purely on outline/shadow */
+}
+
+/* FFVI Theme */
+.theme-ffvi {
+    /* Base text shadowing and font for the entire body */
+    text-shadow: 2px 2px 0px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+.theme-ffvi .message {
+    background: linear-gradient(to bottom, #07008c 0%, #000045 100%);
+    border: 3px solid #ffffff;
+    border-radius: 4px;
+    box-shadow: 
+        inset 0 0 0 2px #000000,
+        0 0 0 3px #000000,
+        0 0 0 4px #4a4a4a;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 12px 14px;
+    color: #ffffff;
+    font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
+    line-height: 1.6;
+}
+.theme-ffvi .message-content {
+    font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
+    text-transform: uppercase;
+    font-weight: normal;
+    text-shadow: 2px 2px 0px #000;
+}
+.theme-ffvi .username {
+    font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
+    text-transform: uppercase;
+    font-weight: normal;
+    padding-bottom: 5px;
+}
+.theme-ffvi .message-header {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+}
+
+/* Cyberpunk Purple Theme */
+.theme-cyberpurple {
+    font-family: 'Orbitron', sans-serif;
+}
+.theme-cyberpurple .message {
+    background: rgba(15, 0, 30, 0.85);
+    border: 1px solid #ff00ff;
+    border-left: 4px solid #00ffff;
+    border-radius: 0;
+    box-shadow: 
+        0 0 10px rgba(255, 0, 255, 0.5), 
+        inset 0 0 15px rgba(255, 0, 255, 0.2);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 10px 15px;
+    position: relative;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+.theme-cyberpurple .message::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    background: linear-gradient(45deg, #ff00ff, #00ffff);
+    z-index: -1;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+    opacity: 0.3;
+}
+.theme-cyberpurple .username {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    /* Hard black outline for high contrast readability, followed by subtle neon glow */
+    text-shadow: 
+        1px 1px 0 #000, -1px -1px 0 #000, 
+        1px -1px 0 #000, -1px 1px 0 #000,
+        0px 2px 4px rgba(0,0,0,1),
+        0 0 6px currentColor;
+}
+.theme-cyberpurple .message-content {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 400;
+    color: #e0d0ff;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+    border-top: 1px solid rgba(0, 255, 255, 0.3);
+    padding-top: 6px;
+    margin-top: 4px;
+}
+.theme-cyberpurple .message-header {
+    margin-bottom: 2px;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+}

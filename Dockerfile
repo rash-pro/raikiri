@@ -1,12 +1,21 @@
-FROM node:18-alpine
+FROM oven/bun:slim
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --production
+# Copy package.json and lockfile (if exists)
+COPY package.json ./
 
-COPY src ./src
+# Install dependencies via bun
+RUN bun install --production
 
-EXPOSE 30000
+# Copy source code
+COPY . .
 
-CMD ["node", "src/server.js"]
+# Ensure data directory exists
+RUN mkdir -p data
+
+# Expose server port
+EXPOSE 30001
+
+# Start the application
+CMD ["bun", "run", "src/core/server.ts"]

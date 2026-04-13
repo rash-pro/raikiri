@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Raikiri Audio Client</title>
+    <style>
+        body {
+            background-color: #0f0f13;
+            color: #d1d1d1;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        h1 { color: #53fc18; }
+        .status { margin-top: 10px; font-size: 14px; opacity: 0.8; }
+        
+        #enable-audio-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #9146FF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #enable-audio-btn:hover { background-color: #7a3add; }
+    </style>
+</head>
+<body>
+    <h1>Raikiri Audio Hub</h1>
+    <p>Leave this tab open in the background to play stream TTS & Alert sounds directly.</p>
+    <div id="status" class="status">Waiting for connection...</div>
+    
+    <button id="enable-audio-btn">Enable Audio (Click Me)</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io('/audio');
+        const statusEl = document.getElementById('status');
+        const btn = document.getElementById('enable-audio-btn');
+        
+        let audioCtx;
+        
+        // Browsers require user interaction before Web Audio API can start
+        btn.addEventListener('click', () => {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            btn.style.display = 'none';
+            statusEl.innerText = "Audio Enabled! Listening for events...";
+            statusEl.style.color = "#53fc18";
+        });
+
+        socket.on('connect', () => {
+             if (btn.style.display !== 'none') {
+                 statusEl.innerText = "Connected to Server. Awaiting user interaction.";
+             }
+        });
+
+        socket.on('play_audio', async (data) => {
+            if (!audioCtx) return; // User hasn't clicked yet
+            
+            try {
+                // data.buffer is an ArrayBuffer sent by socket.io
+                const audioBuffer = await audioCtx.decodeAudioData(data.buffer);
+                const source = audioCtx.createBufferSource();
+                const gainNode = audioCtx.createGain();
+                
+                source.buffer = audioBuffer;
+                
+                // Set volume
+                gainNode.gain.value = (data.volume ?? 50) / 100;
+                
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                source.start(0);
+                
+                console.log(`Playing audio: ${data.id}`);
+            } catch (err) {
+                console.error("Error playing audio buffer:", err);
+            }
+        });
+    </script>
+</body>
+</html>

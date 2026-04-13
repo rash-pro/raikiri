@@ -1,28 +1,34 @@
 {
   "name": "raikiri",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "Stream Interaction Hub",
+  "main": "src/core/server.ts",
+  "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "test": "jest"
+    "start": "bun run src/core/server.ts",
+    "dev": "bun --watch src/core/server.ts",
+    "test": "bun test"
   },
-  "keywords": [],
-  "author": "",
-  "license": "GPL-3.0-only",
-  "type": "commonjs",
   "dependencies": {
-    "axios": "^1.13.4",
+    "@socket.io/bun-engine": "^0.1.0",
+    "@twurple/api": "latest",
+    "@twurple/auth": "latest",
+    "@twurple/eventsub-ws": "latest",
+    "edge-tts-universal": "latest",
     "express": "^5.2.1",
+    "nanoid": "latest",
     "pusher-js": "^8.4.0",
     "socket.io": "^4.8.3",
     "tiktok-live-connector": "^2.1.1-beta1",
     "tmi.js": "^1.8.5",
     "winston": "^3.19.0",
-    "youtube-chat": "^2.2.0"
+    "youtube-chat": "^2.2.0",
+    "zod": "latest"
   },
   "devDependencies": {
-    "jest": "^30.2.0",
-    "supertest": "^7.2.2"
-  }
+    "bun-types": "latest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPL-3.0-only"
 }

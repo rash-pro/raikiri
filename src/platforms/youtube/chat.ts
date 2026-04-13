@@ -1,0 +1,101 @@
+import { LiveChat } from 'youtube-chat';
+import { PlatformAdapter } from '../base.ts';
+import { sanitizeMessage } from '../../utils/sanitizer.ts';
+
+export class YouTubeChatAdapter extends PlatformAdapter {
+  private liveChat: LiveChat;
+  private identifier: { channelId: string } | { liveId: string };
+
+  constructor(identifier: { channelId: string } | { liveId: string }) {
+    super('youtube');
+    this.identifier = identifier;
+    this.liveChat = new LiveChat(identifier);
+    this.setupListeners();
+  }
+
+  private setupListeners() {
+    this.liveChat.on('chat', (chatItem) => {
+      const user = chatItem.author.name || 'unknown';
+
+      const chatMessage = {
+        id: chatItem.id,
+        user: user,
+        displayName: user,
+        content: this.parseMessage(chatItem.message),
+        htmlContent: this.parseMessage(chatItem.message),
+        color: undefined,
+        timestamp: new Date(chatItem.timestamp).toISOString(),
+        badges: this.parseBadges(chatItem.author),
+      };
+
+      this.emitChat({ msg: chatMessage, user: user, content: chatMessage.content });
+
+      // Super Chat detection
+      // Note: we might need to check if 'superchat' property actually exists in this library's output
+      if ('superchat' in chatItem) {
+        const sc: any = chatItem.superchat;
+        if (sc && sc.amount) {
+          this.emitEvent('superchat', {
+            user: user,
+            amount: sc.amount,
+            currency: sc.currency || '',
+            message: chatMessage.content
+          });
+        }
+      }
+    });
+
+    this.liveChat.on('start', (liveId) => {
+      this.logger.info(`Connected to YouTube stream: ${liveId}`);
+    });
+
+    this.liveChat.on('error', (err) => {
+      this.logger.error('YouTube Chat Error', err);
+    });
+
+    this.liveChat.on('end', (reason) => {
+      this.logger.info(`YouTube stream ended: ${reason}`);
+    });
+  }
+
+  private parseMessage(messageRuns: any[]): string {
+    if (!Array.isArray(messageRuns)) return '';
+
+    return messageRuns.map(run => {
+      if (run.emoji) {
+        const url = run.emoji.image?.thumbnails?.[0]?.url;
+        if (url) return `<img src="${url}" class="emote" alt="${run.emoji.emojiId || 'emote'}">`;
+        return run.text || run.emoji.shortcuts?.[0] || '';
+      }
+
+      if (run.url) {
+        return `<img src="${run.url}" class="emote" alt="${run.alt || 'emote'}">`;
+      }
+
+      return sanitizeMessage(run.text || '');
+    }).join('');
+  }
+
+  private parseBadges(author: any): any[] {
+    const badges = [];
+    if (author.isChatOwner) badges.push({ type: 'owner', url: '' });
+    if (author.isChatModerator) badges.push({ type: 'moderator', url: '' });
+    if (author.isChatSponsor) badges.push({ type: 'subscriber', url: '' });
+    return badges;
+  }
+
+  async connect(): Promise<void> {
+    try {
+      const ok = await this.liveChat.start();
+      if (!ok) {
+        this.logger.error('Failed to start YouTube chat listener');
+      }
+    } catch (err) {
+      this.logger.error('Failed to connect to YouTube', err);
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    this.liveChat.stop();
+  }
+}
