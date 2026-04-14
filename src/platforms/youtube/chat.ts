@@ -5,12 +5,30 @@ import { sanitizeMessage } from '../../utils/sanitizer.ts';
 export class YouTubeChatAdapter extends PlatformAdapter {
   private liveChat: LiveChat;
   private identifier: { channelId: string } | { liveId: string };
+  
+  // Queue to control flow of burst messages
+  private messageQueue: any[] = [];
+  private isProcessingQueue: boolean = false;
+  private readonly processIntervalMs = 300; // 300ms delay between messages
 
   constructor(identifier: { channelId: string } | { liveId: string }) {
     super('youtube');
     this.identifier = identifier;
     this.liveChat = new LiveChat(identifier);
     this.setupListeners();
+  }
+
+  private async processQueue() {
+    if (this.isProcessingQueue) return;
+    this.isProcessingQueue = true;
+
+    while (this.messageQueue.length > 0) {
+      const { chatMessage, user } = this.messageQueue.shift();
+      this.emitChat({ msg: chatMessage, user: user, content: chatMessage.content });
+      await new Promise(resolve => setTimeout(resolve, this.processIntervalMs));
+    }
+
+    this.isProcessingQueue = false;
   }
 
   private setupListeners() {
@@ -28,10 +46,11 @@ export class YouTubeChatAdapter extends PlatformAdapter {
         badges: this.parseBadges(chatItem.author),
       };
 
-      this.emitChat({ msg: chatMessage, user: user, content: chatMessage.content });
+      // Queue the message instead of emitting immediately
+      this.messageQueue.push({ chatMessage, user });
+      this.processQueue();
 
       // Super Chat detection
-      // Note: we might need to check if 'superchat' property actually exists in this library's output
       if ('superchat' in chatItem) {
         const sc: any = chatItem.superchat;
         if (sc && sc.amount) {
