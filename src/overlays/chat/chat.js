@@ -95,8 +95,37 @@ function createMessageElement(msg) {
             ${badgesHtml}
             <span class="username" style="color: ${color}">${msg.displayName}</span>
         </div>
-        <div class="message-content">${msg.htmlContent}</div>
+        <div class="message-content"></div>
     `;
+
+    const contentDiv = el.querySelector('.message-content');
+
+    if (currentConfig.chatTheme === 'ffvi' && currentConfig.chatAnimations) {
+        // 60fps DOM-based typewriter effect
+        const temp = document.createElement('div');
+        temp.innerHTML = msg.htmlContent;
+        const nodes = Array.from(temp.childNodes);
+        let nIdx = 0, tIdx = 0;
+
+        function typeNext() {
+            if (nIdx >= nodes.length) return;
+            const node = nodes[nIdx];
+            if (node.nodeType === Node.TEXT_NODE) {
+                // If it's the first character of this text node, create a new text node in the DOM
+                if (tIdx === 0) contentDiv.appendChild(document.createTextNode(''));
+                contentDiv.lastChild.nodeValue += node.nodeValue[tIdx];
+                tIdx++;
+                if (tIdx >= node.nodeValue.length) { tIdx = 0; nIdx++; }
+            } else {
+                contentDiv.appendChild(node.cloneNode(true));
+                nIdx++;
+            }
+            requestAnimationFrame(typeNext);
+        }
+        requestAnimationFrame(typeNext);
+    } else {
+        contentDiv.innerHTML = msg.htmlContent;
+    }
 
     // Auto-hide old messages logic
     if (currentConfig.chatHideAfter > 0) {

@@ -169,10 +169,7 @@ body, html {
     line-height: 1.6;
 }
 .theme-ffvi .message-content {
-    font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
-    text-transform: uppercase;
-    font-weight: normal;
-    text-shadow: 2px 2px 0px #000;
+    /* animation is handled in JS for 60fps typing */
 }
 .theme-ffvi .username {
     font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
