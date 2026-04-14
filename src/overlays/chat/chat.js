@@ -57,7 +57,11 @@ function enforceMessageLimit() {
 function createMessageElement(msg) {
     const el = document.createElement('div');
     const animClass = currentConfig.chatAnimations ? ' slide-in' : '';
-    el.className = `message platform-${msg.platform}${animClass}`;
+    let baseClass = `message platform-${msg.platform}${animClass}`;
+    if (msg.animationId) {
+        baseClass += ` effect-${msg.animationId}`;
+    }
+    el.className = baseClass;
     el.dataset.id = msg.id;
     
     if (currentConfig.chatAnimations) {

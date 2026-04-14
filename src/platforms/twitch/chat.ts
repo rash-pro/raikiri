@@ -45,6 +45,7 @@ export class TwitchChatAdapter extends PlatformAdapter {
         color: tags['color'],
         badges: this.parseBadges(tags.badges),
         timestamp: new Date().toISOString(),
+        animationId: tags['animation-id'] || null,
       };
 
       this.emitChat({ msg: chatMessage, user: user, content: message });
