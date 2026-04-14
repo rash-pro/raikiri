@@ -111,8 +111,20 @@ export class TwitchChatAdapter extends PlatformAdapter {
       } else {
         this.logger.warn("No Twitch channels configured to connect.");
       }
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error('Failed to connect to Twitch', err);
+      // Fallback for expired or invalid token
+      if (err === 'Login authentication failed' || (typeof err === 'string' && err.includes('authentication failed'))) {
+        this.logger.warn('Token rejected by Twitch. Falling back to anonymous read-only connection...');
+        const options: tmi.Options = {
+          connection: { secure: true, reconnect: true },
+          channels: this.channels,
+        };
+        // Re-initialize client without identity
+        this.client = new tmi.Client(options);
+        this.setupListeners();
+        await this.client.connect().catch(e => this.logger.error('Anonymous fallback failed', e));
+      }
     }
   }
 

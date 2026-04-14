@@ -1,3 +1,5 @@
+import { prepareRichInline, materializeRichInlineLineRange, walkRichInlineLineRanges } from "https://esm.sh/@chenglou/pretext@latest/rich-inline";
+
 const socket = io('/chat');
 const chatContainer = document.getElementById('chat-container');
 
@@ -100,29 +102,74 @@ function createMessageElement(msg) {
 
     const contentDiv = el.querySelector('.message-content');
 
-    if (currentConfig.chatTheme === 'ffvi' && currentConfig.chatAnimations) {
-        // 60fps DOM-based typewriter effect
+    if (currentConfig.chatTheme === 'ffvi') {
         const temp = document.createElement('div');
         temp.innerHTML = msg.htmlContent;
         const nodes = Array.from(temp.childNodes);
-        let nIdx = 0, tIdx = 0;
-
-        function typeNext() {
-            if (nIdx >= nodes.length) return;
-            const node = nodes[nIdx];
+        
+        const items = [];
+        const fontStr = `${currentConfig.chatFontSize}px "Press Start 2P", "Courier New", Courier, monospace`;
+        
+        nodes.forEach(node => {
             if (node.nodeType === Node.TEXT_NODE) {
-                // If it's the first character of this text node, create a new text node in the DOM
-                if (tIdx === 0) contentDiv.appendChild(document.createTextNode(''));
-                contentDiv.lastChild.nodeValue += node.nodeValue[tIdx];
-                tIdx++;
-                if (tIdx >= node.nodeValue.length) { tIdx = 0; nIdx++; }
+                items.push({ text: node.nodeValue, font: fontStr });
+            } else if (node.tagName === 'IMG') {
+                // Emotes have .emote class. 
+                // We use Zero-Width No-Break Space (\uFEFF) so pretext doesn't collapse consecutive emotes.
+                items.push({ text: '\uFEFF', font: fontStr, break: 'never', extraWidth: currentConfig.chatFontSize * 2.5 });
             } else {
-                contentDiv.appendChild(node.cloneNode(true));
-                nIdx++;
+                items.push({ text: node.textContent || ' ', font: fontStr });
             }
-            requestAnimationFrame(typeNext);
+        });
+
+        if (items.length === 0) {
+            items.push({ text: ' ', font: fontStr });
         }
-        requestAnimationFrame(typeNext);
+
+        const padding = 100; // Total window to content padding adjusted 
+        const baseWidth = window.innerWidth || document.documentElement.clientWidth;
+        const maxWidth = Math.max(100, baseWidth - padding); 
+        
+        try {
+            const prepared = prepareRichInline(items);
+            let delayAcc = 0.12; // Esperar a que se termine de dibujar la ventana (0.12s)
+
+            walkRichInlineLineRanges(prepared, maxWidth, range => {
+                const line = materializeRichInlineLineRange(prepared, range);
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'chat-line';
+                if (!currentConfig.chatAnimations) {
+                    lineDiv.classList.add('no-anim');
+                }
+
+                let charCount = 0;
+                line.fragments.forEach(frag => {
+                    const originalNode = nodes[frag.itemIndex];
+                    if (originalNode && originalNode.tagName === 'IMG') {
+                        charCount += 4; // Emotes duration weight
+                        lineDiv.appendChild(originalNode.cloneNode(true));
+                    } else {
+                        // text fragments can be sliced by pretext, so use frag.text!
+                        charCount += frag.text.length;
+                        lineDiv.appendChild(document.createTextNode(frag.text));
+                    }
+                });
+
+                // Setting sequential CSS wipe effect - Fast 60fps typing (~16ms per char)
+                const duration = Math.max(0.1, charCount * 0.016);
+                if (currentConfig.chatAnimations) {
+                    lineDiv.style.animationDuration = `${duration}s`;
+                    lineDiv.style.animationDelay = `${delayAcc}s`;
+                    lineDiv.style.animationTimingFunction = `steps(${Math.max(1, charCount)}, end)`;
+                }
+                delayAcc += duration;
+
+                contentDiv.appendChild(lineDiv);
+            });
+        } catch(e) {
+            console.error("Pretext error, falling back:", e);
+            contentDiv.innerHTML = msg.htmlContent;
+        }
     } else {
         contentDiv.innerHTML = msg.htmlContent;
     }
@@ -142,8 +189,15 @@ function createMessageElement(msg) {
     return el;
 }
 
-socket.on('message', (msg) => {
+socket.on('message', async (msg) => {
     if (!allowedPlatforms.includes(msg.platform)) return;
+    
+    if (currentConfig.chatTheme === 'ffvi') {
+        const fontStr = `${currentConfig.chatFontSize}px "Press Start 2P"`;
+        if (document.fonts) {
+            try { await document.fonts.load(fontStr); } catch(e) {}
+        }
+    }
     
     const msgEl = createMessageElement(msg);
     chatContainer.appendChild(msgEl);

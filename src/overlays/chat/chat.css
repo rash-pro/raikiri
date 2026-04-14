@@ -289,16 +289,25 @@ body, html {
 /* FFVI Theme overrides */
 .theme-ffvi .message {
     transition: none; /* disable default slide */
-    animation: ffviMessageRender 0.3s steps(4, end) forwards;
+    animation: ffviMessageRender 0.12s steps(3, end) forwards;
 }
 .theme-ffvi .slide-in {
     opacity: 0;
     transform: none;
 }
 .theme-ffvi .message-content {
-    animation: ffviTypewriter 1.5s steps(30, end) forwards;
-    animation-delay: 0.1s;
+    display: flex;
+    flex-direction: column;
+}
+.theme-ffvi .chat-line {
+    animation: ffviTypewriter forwards;
     clip-path: inset(0 100% 0 0);
+    white-space: nowrap; /* Force pretext calculated lines */
+    width: fit-content;
+}
+.theme-ffvi .chat-line.no-anim {
+    animation: none;
+    clip-path: inset(0 0 0 0);
 }
 @keyframes ffviMessageRender {
     0% { transform: scaleY(0); opacity: 0; }

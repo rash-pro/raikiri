@@ -10,6 +10,8 @@ export class YouTubeChatAdapter extends PlatformAdapter {
   private messageQueue: any[] = [];
   private isProcessingQueue: boolean = false;
   private readonly processIntervalMs = 300; // 300ms delay between messages
+  private retryTimeout: NodeJS.Timeout | null = null;
+  private retryCount = 0;
 
   constructor(identifier: { channelId: string } | { liveId: string }) {
     super('youtube');
@@ -108,13 +110,25 @@ export class YouTubeChatAdapter extends PlatformAdapter {
       const ok = await this.liveChat.start();
       if (!ok) {
         this.logger.error('Failed to start YouTube chat listener');
+      } else {
+        this.retryCount = 0; // reset on success
       }
-    } catch (err) {
-      this.logger.error('Failed to connect to YouTube', err);
+    } catch (err: any) {
+      const isRateLimited = err?.response?.status === 429 || (err?.message && err.message.includes('429'));
+      this.logger.error('Failed to connect to YouTube', isRateLimited ? 'Rate limited (429)' : err);
+      
+      if (isRateLimited) {
+         // Exponential backoff: 2s, 4s, 8s -> max 60s
+         const delay = Math.min(2000 * Math.pow(2, this.retryCount), 60000); 
+         this.logger.warn(`Retrying YouTube connection in ${delay/1000}s...`);
+         this.retryCount++;
+         this.retryTimeout = setTimeout(() => this.connect(), delay);
+      }
     }
   }
 
   async disconnect(): Promise<void> {
+    if (this.retryTimeout) clearTimeout(this.retryTimeout);
     this.liveChat.stop();
   }
 }
