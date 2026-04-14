@@ -101,6 +101,19 @@ function createMessageElement(msg) {
     `;
 
     const contentDiv = el.querySelector('.message-content');
+    
+    // Check if the message only consists of emotes (and whitespace)
+    const tempNode = document.createElement('div');
+    tempNode.innerHTML = msg.htmlContent;
+    const meaningfulNodes = Array.from(tempNode.childNodes).filter(n => {
+        return !(n.nodeType === Node.TEXT_NODE && n.textContent.trim() === '');
+    });
+    const isEmoteOnly = meaningfulNodes.length > 0 && meaningfulNodes.every(n => 
+        n.nodeType === Node.ELEMENT_NODE && n.tagName === 'IMG' && n.classList.contains('emote')
+    );
+    if (isEmoteOnly) {
+        contentDiv.classList.add('emote-only');
+    }
 
     if (currentConfig.chatTheme === 'ffvi') {
         const temp = document.createElement('div');

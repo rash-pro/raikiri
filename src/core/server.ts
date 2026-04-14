@@ -127,6 +127,14 @@ app.post("/api/alerts/test", express.json(), (req, res) => {
 
 app.post("/api/config", (req, res) => {
   try {
+    const oldCredentials = {
+      twitchChannel: config.get("twitchChannel"),
+      twitchClientId: config.get("twitchClientId"),
+      youtubeChannelId: config.get("youtubeChannelId"),
+      kickUsername: config.get("kickUsername"),
+      tiktokUsername: config.get("tiktokUsername")
+    };
+
     for (const [key, value] of Object.entries(req.body)) {
       if (value !== undefined && value !== null) {
         config.set(key as any, value);
@@ -142,8 +150,18 @@ app.post("/api/config", (req, res) => {
     for (const key of configKeys) updatedConfig[key] = config.get(key as any);
     chatIo.emit('config', updatedConfig);
     
-    // Restart adapters using the new config
-    startAdapters();
+    // Restart adapters only if platform credentials changed
+    const credentialsChanged = 
+      oldCredentials.twitchChannel !== config.get("twitchChannel") ||
+      oldCredentials.twitchClientId !== config.get("twitchClientId") ||
+      oldCredentials.youtubeChannelId !== config.get("youtubeChannelId") ||
+      oldCredentials.kickUsername !== config.get("kickUsername") ||
+      oldCredentials.tiktokUsername !== config.get("tiktokUsername");
+
+    if (credentialsChanged) {
+      startAdapters();
+    }
+
     res.json({ success: true });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
