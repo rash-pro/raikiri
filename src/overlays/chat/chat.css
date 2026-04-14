@@ -286,3 +286,50 @@ body, html {
     0%   { background-position: 0 0, 0% 0; }
     100% { background-position: 0 0, 300% 0; }
 }
+
+/* Custom Entry Animations overrides per theme */
+
+/* FFVI Theme overrides */
+.theme-ffvi .message {
+    transition: none; /* disable default slide */
+    animation: ffviMessageRender 0.3s steps(4, end) forwards;
+}
+.theme-ffvi .slide-in {
+    opacity: 0;
+    transform: none;
+}
+.theme-ffvi .message-content {
+    animation: ffviTypewriter 1.5s steps(30, end) forwards;
+    animation-delay: 0.1s;
+    clip-path: inset(0 100% 0 0);
+}
+@keyframes ffviMessageRender {
+    0% { transform: scaleY(0); opacity: 0; }
+    100% { transform: scaleY(1); opacity: 1; }
+}
+@keyframes ffviTypewriter {
+    0% { clip-path: inset(0 100% 0 0); }
+    100% { clip-path: inset(0 0 0 0); }
+}
+
+/* Cyberpurple Theme overrides */
+.theme-cyberpurple .message {
+    transition: none;
+    animation: cyberGlitchEntry 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+.theme-cyberpurple .slide-in {
+    opacity: 0;
+    transform: none;
+}
+@keyframes cyberGlitchEntry {
+    0% {
+        transform: translate(-20px, 0);
+        opacity: 0;
+        filter: hue-rotate(90deg);
+    }
+    20% { opacity: 1; transform: translate(10px, 0) skewX(20deg); filter: contrast(150%); }
+    40% { transform: translate(-10px, 0) skewX(-10deg); filter: invert(0.2); }
+    60% { transform: translate(5px, 0) skewX(5deg); filter: hue-rotate(-90deg); }
+    80% { transform: translate(-2px, 0) skewX(-2deg); filter: none; }
+    100% { transform: translate(0, 0) skewX(0); opacity: 1; }
+}
