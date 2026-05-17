@@ -8,7 +8,7 @@ Raikiri is a high-performance, self-hosted streaming interaction hub built with 
 - **Infinite Cloud TTS**: Microsoft Azure Neural TTS exposed via Edge APIs. Completely free, no quotas, and no GPU usage. Includes custom voice overrides per alert type (e.g. `es-MX-DaliaNeural` for bits, `ja-JP-NanamiNeural` for Twitch Custom Rewards).
 - **EventSub & Advanced Alerts**: Subscribes dynamically to modern Twitch WebSockets. Fully themeable alerts with variables (e.g. `!voz` custom commands, Channel Point Redemptions).
 - **OBS Local Media**: Store static media like `boom.gif` or `sound.mp3` in your `/data/media` volume without external third-party hosts.
-- **Audio Client Tab**: Direct desktop audio output for OBS via a background browser tab (`/audio`), bypassing traditional Linux PulseAudio/ALSA capture issues with Browser Sources.
+- **Audio Client**: Browser-based TTS/audio output (`/audio`) for OBS Browser Sources or a normal background browser tab.
 - **Sleek Overlays**: Fully responsive theming (`cyberpurple`, `ffvi`, etc) for `/overlay/chat/` and `/overlay/alerts/` tuned for OBS Browser Sources.
 - **Admin Dashboard**: Manage accounts, trigger Twitch Device Code Auth securely without leaking tokens, and tune TTS settings on the fly. 
 
@@ -32,7 +32,7 @@ In the Raikiri dashboard, you can reference them simply by accessing the `/media
 Add Browser Sources in OBS pointing to:
 - Chat Overlay: `http://localhost:30001/overlay/chat/` (suggested: 400x800)
 - Alerts Overlay: `http://localhost:30001/overlay/alerts/` (suggested: 1920x1080)
-- Audio (Open this in a normal background browser tab, NOT OBS): `http://localhost:30001/audio/` -> Press Enable Audio.
+- Audio: `http://localhost:30001/audio/` as an OBS Browser Source with "Control audio via OBS" enabled. If OBS blocks autoplay, right-click the source, choose Interact, and press Enable Audio once.
 
 ## Runtime Architecture (Bun)
 Raikiri v2 uses standard standard ES modules and pure `bun` runtime APIs. 

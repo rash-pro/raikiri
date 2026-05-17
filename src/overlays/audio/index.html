@@ -35,61 +35,114 @@
 </head>
 <body>
     <h1>Raikiri Audio Hub</h1>
-    <p>Leave this tab open in the background to play stream TTS & Alert sounds directly.</p>
+    <p>Leave this source active to play stream TTS & alert sounds directly.</p>
     <div id="status" class="status">Waiting for connection...</div>
     
-    <button id="enable-audio-btn">Enable Audio (Click Me)</button>
+    <button id="enable-audio-btn" style="display:none;">Enable Audio</button>
+    <audio id="audio-output" autoplay playsinline></audio>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io('/audio');
         const statusEl = document.getElementById('status');
         const btn = document.getElementById('enable-audio-btn');
+        const audioOutput = document.getElementById('audio-output');
         
-        let audioCtx;
-        
-        // Browsers require user interaction before Web Audio API can start
-        btn.addEventListener('click', () => {
-            if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+        let audioUnlocked = false;
+        let pendingAudio = null;
+        let lastObjectUrl = null;
+
+        function setReadyState(message = "Audio ready. Listening for events...") {
             btn.style.display = 'none';
-            statusEl.innerText = "Audio Enabled! Listening for events...";
+            statusEl.innerText = message;
             statusEl.style.color = "#53fc18";
+        }
+
+        function setBlockedState() {
+            btn.style.display = 'inline-block';
+            statusEl.innerText = "Connected. OBS/browser blocked autoplay; click Enable Audio once.";
+            statusEl.style.color = "#ffd166";
+        }
+
+        function loadAudio(buffer, volume) {
+            if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
+
+            const blob = new Blob([buffer], { type: 'audio/mpeg' });
+            const objectUrl = URL.createObjectURL(blob);
+            lastObjectUrl = objectUrl;
+
+            audioOutput.volume = Math.max(0, Math.min(1, (volume ?? 50) / 100));
+            audioOutput.src = objectUrl;
+            audioOutput.load();
+        }
+
+        audioOutput.addEventListener('ended', () => {
+            if (lastObjectUrl) {
+                URL.revokeObjectURL(lastObjectUrl);
+                lastObjectUrl = null;
+            }
+            if (pendingAudio) {
+                const queued = pendingAudio;
+                pendingAudio = null;
+                playAudioPayload(queued).catch((err) => {
+                    console.warn("Queued audio playback failed:", err);
+                    pendingAudio = queued;
+                    setBlockedState();
+                });
+            } else {
+                setReadyState();
+            }
         });
 
+        audioOutput.addEventListener('error', () => {
+            if (lastObjectUrl) {
+                URL.revokeObjectURL(lastObjectUrl);
+                lastObjectUrl = null;
+            }
+        });
+
+        async function playAudioPayload(data) {
+            loadAudio(data.buffer, data.volume);
+            await audioOutput.play();
+            audioUnlocked = true;
+            setReadyState("Playing audio...");
+            console.log(`Playing audio: ${data.id}`);
+        }
+
+        async function unlockAudio() {
+            try {
+                // A silent data URI gives browsers/OBS a gesture-bound media play without needing Web Audio.
+                audioOutput.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQQAAAAAAA==";
+                audioOutput.volume = 0;
+                await audioOutput.play();
+                audioUnlocked = true;
+                audioOutput.volume = 1;
+                setReadyState();
+                if (pendingAudio) {
+                    const queued = pendingAudio;
+                    pendingAudio = null;
+                    await playAudioPayload(queued);
+                }
+            } catch (err) {
+                setBlockedState();
+            }
+        }
+
+        btn.addEventListener('click', unlockAudio);
+
         socket.on('connect', () => {
-             if (btn.style.display !== 'none') {
-                 statusEl.innerText = "Connected to Server. Awaiting user interaction.";
-             }
+            if (!audioUnlocked) {
+                statusEl.innerText = "Connected. Autoplay will be attempted on the next sound.";
+            }
         });
 
         socket.on('play_audio', async (data) => {
-            if (!audioCtx) return; // User hasn't clicked yet
-            
             try {
-                // data.buffer is an ArrayBuffer sent by socket.io
-                const audioBuffer = await audioCtx.decodeAudioData(data.buffer);
-                const source = audioCtx.createBufferSource();
-                const gainNode = audioCtx.createGain();
-                
-                source.buffer = audioBuffer;
-                
-                // Set volume
-                gainNode.gain.value = (data.volume ?? 50) / 100;
-                
-                source.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                source.start(0);
-                
-                console.log(`Playing audio: ${data.id}`);
+                await playAudioPayload(data);
             } catch (err) {
-                console.error("Error playing audio buffer:", err);
+                console.warn("Audio playback blocked or failed:", err);
+                pendingAudio = data;
+                setBlockedState();
             }
         });
     </script>
