@@ -97,6 +97,24 @@ func (a *YouTubeWebAdapter) run(ctx context.Context) error {
 
 func (a *YouTubeWebAdapter) fetchLiveOptions(ctx context.Context) (ytOptions, error) {
 	url := youtubeLiveURL(a.id)
+	opt, err := a.fetchLiveOptionsFromURL(ctx, url, true)
+	if err == nil {
+		return opt, nil
+	}
+	if fallback := youtubeLiveChatURL(a.id); fallback != "" {
+		fallbackOpt, fallbackErr := a.fetchLiveOptionsFromURL(ctx, fallback, false)
+		if fallbackErr == nil {
+			if fallbackOpt.LiveID == "" {
+				fallbackOpt.LiveID = a.id
+			}
+			return fallbackOpt, nil
+		}
+		return ytOptions{}, fmt.Errorf("%w; live chat fallback failed: %v", err, fallbackErr)
+	}
+	return ytOptions{}, err
+}
+
+func (a *YouTubeWebAdapter) fetchLiveOptionsFromURL(ctx context.Context, url string, requireLiveID bool) (ytOptions, error) {
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	req.Header.Set("User-Agent", browserUA)
 	res, err := http.DefaultClient.Do(req)
@@ -106,6 +124,9 @@ func (a *YouTubeWebAdapter) fetchLiveOptions(ctx context.Context) (ytOptions, er
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 	page := string(body)
+	if strings.Contains(page, "Our systems have detected unusual traffic") || strings.Contains(page, "g-recaptcha") {
+		return ytOptions{}, fmt.Errorf("youtube returned captcha/unusual traffic page")
+	}
 	if strings.Contains(page, `"isReplay":true`) {
 		return ytOptions{}, fmt.Errorf("youtube live is already finished")
 	}
@@ -115,7 +136,7 @@ func (a *YouTubeWebAdapter) fetchLiveOptions(ctx context.Context) (ytOptions, er
 		ClientVersion: firstMatch(page, `["']clientVersion["']:\s*["']([\d.]+?)["']`),
 		Continuation:  firstMatch(page, `["']continuation["']:\s*["'](.+?)["']`),
 	}
-	if opt.LiveID == "" || opt.APIKey == "" || opt.ClientVersion == "" || opt.Continuation == "" {
+	if (requireLiveID && opt.LiveID == "") || opt.APIKey == "" || opt.ClientVersion == "" || opt.Continuation == "" {
 		return opt, fmt.Errorf("youtube live bootstrap missing required fields")
 	}
 	return opt, nil
@@ -272,6 +293,13 @@ func youtubeLiveURL(id string) string {
 		return id
 	}
 	return "https://www.youtube.com/watch?v=" + id
+}
+
+func youtubeLiveChatURL(id string) string {
+	if strings.HasPrefix(id, "UC") || strings.HasPrefix(id, "@") || strings.Contains(id, "youtube.com") {
+		return ""
+	}
+	return "https://www.youtube.com/live_chat?is_popout=1&v=" + id
 }
 
 func firstMatch(s, pattern string) string {

@@ -3,7 +3,7 @@ go = "1.26.3"
 
 [env]
 CGO_ENABLED = "0"
-VERSION = "v3.0.0"
+VERSION = "v3.0.1"
 
 [tasks.build]
 description = "Build the native Raikiri binary"

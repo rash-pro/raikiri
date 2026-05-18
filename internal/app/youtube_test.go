@@ -53,3 +53,14 @@ func TestParseYouTubeChat(t *testing.T) {
 		t.Fatalf("unexpected superchat: %#v", items[1])
 	}
 }
+
+func TestYouTubeLiveChatURLOnlyForVideoIDs(t *testing.T) {
+	if got := youtubeLiveChatURL("jfKfPfyJRdk"); got != "https://www.youtube.com/live_chat?is_popout=1&v=jfKfPfyJRdk" {
+		t.Fatalf("unexpected video fallback url: %q", got)
+	}
+	for _, id := range []string{"@lofigirl", "UCSJ4gkVC6NrvII8umztf0Ow", "https://www.youtube.com/watch?v=jfKfPfyJRdk"} {
+		if got := youtubeLiveChatURL(id); got != "" {
+			t.Fatalf("expected no fallback for %q, got %q", id, got)
+		}
+	}
+}
