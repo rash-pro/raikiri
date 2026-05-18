@@ -1,0 +1,29 @@
+body {
+    margin: 0;
+    background: transparent;
+    color: #fff;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow: hidden;
+}
+
+.custom-widget {
+    width: min(var(--widget-width, 520px), calc(100vw - 24px));
+    margin: 12px;
+}
+
+.empty {
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px;
+    background: rgba(12,12,16,0.78);
+    color: rgba(255,255,255,0.72);
+    font-size: 13px;
+}
+
+.custom-frame {
+    display: block;
+    width: 100%;
+    height: 100vh;
+    border: 0;
+    background: transparent;
+}

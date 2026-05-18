@@ -1,0 +1,87 @@
+body {
+    margin: 0;
+    background: transparent;
+    color: #fff;
+    font-family: var(--widget-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+    overflow: hidden;
+}
+
+.events {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(var(--widget-width, 520px), calc(100vw - 24px));
+    margin: 12px;
+}
+
+.event {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(12, 12, 16, var(--widget-bg-alpha, 0.78));
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: var(--widget-radius, 8px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+    backdrop-filter: blur(10px);
+}
+
+.event-icon {
+    display: var(--widget-icon-display, grid);
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.12);
+    font-weight: 900;
+    color: var(--widget-accent, #10b981);
+}
+
+.event-main {
+    min-width: 0;
+}
+
+.event-user,
+.event-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.event-user {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.event-label {
+    color: rgba(255,255,255,0.72);
+    font-size: 12px;
+}
+
+.event-amount {
+    font-size: 13px;
+    font-weight: 900;
+    color: #facc15;
+    white-space: nowrap;
+}
+
+:root[data-widget-theme="minimal"] .event {
+    padding: 4px 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+:root[data-widget-theme="retro"] .event {
+    border: 3px solid #fff;
+    box-shadow: 4px 4px 0 #000;
+    backdrop-filter: none;
+}
+
+:root[data-widget-theme="terminal"] .event {
+    background: rgba(0, 0, 0, var(--widget-bg-alpha, 0.78));
+    border-color: var(--widget-accent, #10b981);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--widget-accent, #10b981) 28%, transparent);
+}

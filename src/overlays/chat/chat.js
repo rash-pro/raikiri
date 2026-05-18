@@ -59,7 +59,8 @@ function enforceMessageLimit() {
 function createMessageElement(msg) {
     const el = document.createElement('div');
     const animClass = currentConfig.chatAnimations ? ' slide-in' : '';
-    let baseClass = `message platform-${msg.platform}${animClass}`;
+    const kind = msg.kind || 'chat';
+    let baseClass = `message platform-${msg.platform} kind-${kind}${animClass}`;
     if (msg.animationId) {
         baseClass += ` effect-${msg.animationId}`;
     }
@@ -71,6 +72,11 @@ function createMessageElement(msg) {
     }
 
     const color = msg.color || platformColors[msg.platform] || '#ffffff';
+    const safeColor = value => /^#[0-9a-fA-F]{6}$/.test(value || '') ? value : '';
+    const headerColor = safeColor(msg.headerColor);
+    const bodyColor = safeColor(msg.bodyColor);
+    if (headerColor) el.style.setProperty('--paid-header', headerColor);
+    if (bodyColor) el.style.setProperty('--paid-body', bodyColor);
     
     // Badges implementation
     let badgesHtml = '';
@@ -90,13 +96,22 @@ function createMessageElement(msg) {
 
     const platformIconHtml = `<span class="platform-icon" style="color: ${platformColors[msg.platform]}">${platformIcons[msg.platform]}</span>`;
 
-    // Structure
+    const paidBanner = ['superchat', 'supersticker', 'membership'].includes(kind) ? `
+        <div class="paid-banner">
+            <span class="paid-kind">${kind === 'superchat' ? 'Super Chat' : kind === 'supersticker' ? 'Super Sticker' : 'Membership'}</span>
+            ${msg.amountText ? `<span class="paid-amount">${msg.amountText}</span>` : ''}
+        </div>
+    ` : '';
+    const stickerHtml = kind === 'supersticker' && msg.stickerUrl ? `<img class="paid-sticker" src="${msg.stickerUrl}" alt="Super Sticker">` : '';
+
     el.innerHTML = `
+        ${paidBanner}
         <div class="message-header">
             ${platformIconHtml}
             ${badgesHtml}
             <span class="username" style="color: ${color}">${msg.displayName}</span>
         </div>
+        ${stickerHtml}
         <div class="message-content"></div>
     `;
 

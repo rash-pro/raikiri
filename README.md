@@ -19,7 +19,8 @@ This is the native Go rewrite. It ships as a small standalone binary. If you nee
 - Twitch chat, Twitch EventSub alerts, YouTube Live chat via web-first polling.
 - Edge TTS cloud voices streamed to `/audio`.
 - Local media support via `/media/*`.
-- OBS browser sources for chat, alerts, and audio.
+- OBS browser sources for chat, alerts, widgets, and audio.
+- Configurable widgets for support goals, recent events, and user-defined custom overlays.
 
 ## Downloading a Release
 
@@ -97,15 +98,113 @@ Add these as OBS Browser Sources:
 
 - Chat overlay: `http://localhost:30001/overlay/chat/`
 - Alerts overlay: `http://localhost:30001/overlay/alerts/`
+- Support goal widget: `http://localhost:30001/overlay/widgets/support-goal/`
+- Recent events widget: `http://localhost:30001/overlay/widgets/recent-events/`
+- Custom widget: `http://localhost:30001/overlay/widgets/custom/?id=YOUR_WIDGET_ID`
 - Audio output: `http://localhost:30001/audio/`
 
 Suggested sizes:
 
 - Chat: `400x800`, or your preferred chat column size.
 - Alerts: `1920x1080`.
+- Widgets: match the widget width configured in the dashboard, or use a transparent `1920x1080` source.
 - Audio: any size; enable **Control audio via OBS** if desired.
 
 If OBS or the browser blocks autoplay on `/audio`, right-click the source, choose **Interact**, and press **Enable Audio** once.
+
+## Widgets
+
+Raikiri includes a widget system for OBS browser sources. Widgets use `/api/widgets/state` for initial state and `/ws/widgets` for live updates.
+
+Built-in widgets:
+
+- **Support Goal:** tracks support events since the last reset.
+- **Recent Events:** lists recent stream events by type.
+- **Custom Widgets:** user-defined HTML, CSS, and JavaScript rendered as an OBS browser source.
+
+Widget appearance options:
+
+- Theme preset: `glass`, `minimal`, `cyber`, `retro`, `terminal`, or custom CSS.
+- Accent color.
+- Font family.
+- Background opacity.
+- Border radius.
+- Width.
+- Icon visibility where the widget supports it.
+
+Most appearance fields can also be overridden from the OBS URL:
+
+```text
+http://localhost:30001/overlay/widgets/recent-events/?theme=terminal&accent=%2300ffd0&width=640&opacity=90
+```
+
+### Custom Widgets
+
+Custom widgets are configured in the dashboard under **Widgets -> Custom Widgets**. Each custom widget has:
+
+- Stable ID used by the OBS URL.
+- Name.
+- Enabled flag.
+- Activation rules.
+- HTML.
+- CSS.
+- JavaScript.
+- Appearance settings.
+
+OBS URL format:
+
+```text
+http://localhost:30001/overlay/widgets/custom/?id=custom-audio-alert
+```
+
+Custom widget JavaScript receives live activations through `raikiri:event`:
+
+```js
+window.addEventListener('raikiri:event', event => {
+  const evt = event.detail;
+  const user = evt.user || 'Viewer';
+  document.getElementById('title').textContent = `${user} activated a reward`;
+});
+```
+
+The full widget state is also available through `raikiri:state`:
+
+```js
+window.addEventListener('raikiri:state', event => {
+  const state = event.detail;
+  console.log(state.recentEvents);
+});
+```
+
+Event fields available to custom widgets:
+
+- `type`: `bits`, `channel_points`, `superchat`, `supersticker`, `membership`, `subscription`, `gift`, `raid`, `follow`.
+- `platform`: `twitch` or `youtube`.
+- `user`: username/display name from the platform.
+- `amount`: bits, donation amount, gift count, or similar value.
+- `currency`: currency label when available.
+- `message`: chat message, superchat text, or channel points user input.
+- `rewardName`: Twitch Channel Points reward title.
+- `tier`: subscription tier when available.
+- `viewers`: raid viewer count.
+
+### Custom Widget Activations
+
+Activation rules decide which live events trigger a custom widget.
+
+Supported activation fields:
+
+- **Event Type:** `any`, `bits`, `channel_points`, `superchat`, `supersticker`, `membership`, `subscription`, `gift`, `raid`, or `follow`.
+- **Minimum Amount:** useful for bits, gifts, and paid support events.
+- **Reward Name:** exact Twitch Channel Points reward title.
+
+Examples:
+
+- Bits alert: `eventType=bits`, `minAmount=25`.
+- Channel Points alert: `eventType=channel_points`, `rewardName=Reunión G.A.T.O.`.
+- Any support event: `eventType=any`.
+
+The dashboard **Test** button for a custom widget generates a test event that matches that widget's activation rule.
 
 ## Local Media
 

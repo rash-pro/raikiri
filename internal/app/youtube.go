@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -86,30 +87,37 @@ func (a *YouTubeWebAdapter) run(ctx context.Context) error {
 			msg := ChatMessage{
 				ID: item.ID, Platform: PlatformYouTube, User: item.Author, DisplayName: item.Author,
 				Content: item.Text, HTMLContent: item.HTML, Badges: item.Badges, Timestamp: item.Timestamp,
+				Kind: item.Kind, AmountText: item.AmountText, StickerURL: item.StickerURL,
+				HeaderColor: item.HeaderColor, BodyColor: item.BodyColor,
 			}
 			a.chat(msg)
-			if item.SuperchatAmount != "" {
-				a.event(Event{Type: "superchat", Platform: PlatformYouTube, User: item.Author, Amount: item.SuperchatAmount, Message: item.Text})
+			switch item.Kind {
+			case "superchat":
+				a.event(Event{Type: "superchat", Platform: PlatformYouTube, User: item.Author, Amount: item.AmountText, Message: item.Text})
+			case "supersticker":
+				a.event(Event{Type: "supersticker", Platform: PlatformYouTube, User: item.Author, Amount: item.AmountText, Message: item.Text})
+			case "membership":
+				a.event(Event{Type: "membership", Platform: PlatformYouTube, User: item.Author, Message: item.Text})
 			}
 		}
 	}
 }
 
 func (a *YouTubeWebAdapter) fetchLiveOptions(ctx context.Context) (ytOptions, error) {
-	url := youtubeLiveURL(a.id)
-	opt, err := a.fetchLiveOptionsFromURL(ctx, url, true)
+	if popout := youtubeLiveChatURL(a.id); popout != "" {
+		opt, err := a.fetchLiveOptionsFromURL(ctx, popout, false)
+		if err == nil {
+			if opt.LiveID == "" {
+				opt.LiveID = youtubeVideoID(a.id)
+			}
+			return opt, nil
+		}
+		a.logger.Warn("youtube popout bootstrap failed; trying watch/live page fallback", "error", err)
+	}
+	watchURL := youtubeLiveURL(a.id)
+	opt, err := a.fetchLiveOptionsFromURL(ctx, watchURL, true)
 	if err == nil {
 		return opt, nil
-	}
-	if fallback := youtubeLiveChatURL(a.id); fallback != "" {
-		fallbackOpt, fallbackErr := a.fetchLiveOptionsFromURL(ctx, fallback, false)
-		if fallbackErr == nil {
-			if fallbackOpt.LiveID == "" {
-				fallbackOpt.LiveID = a.id
-			}
-			return fallbackOpt, nil
-		}
-		return ytOptions{}, fmt.Errorf("%w; live chat fallback failed: %v", err, fallbackErr)
 	}
 	return ytOptions{}, err
 }
@@ -164,13 +172,17 @@ func (a *YouTubeWebAdapter) fetchChat(ctx context.Context, opt ytOptions) ([]ytI
 }
 
 type ytItem struct {
-	ID              string
-	Author          string
-	Text            string
-	HTML            string
-	Badges          []Badge
-	Timestamp       time.Time
-	SuperchatAmount string
+	ID          string
+	Author      string
+	Text        string
+	HTML        string
+	Kind        string
+	AmountText  string
+	StickerURL  string
+	HeaderColor string
+	BodyColor   string
+	Badges      []Badge
+	Timestamp   time.Time
 }
 
 func parseYouTubeChat(raw []byte) ([]ytItem, string, int, error) {
@@ -191,7 +203,7 @@ func parseYouTubeChat(raw []byte) ([]ytItem, string, int, error) {
 		}
 		yt := ytItem{
 			ID: fmt.Sprint(renderer["id"]), Author: simpleText(renderer["authorName"]),
-			HTML: runsHTML(renderer["message"]), Text: runsText(renderer["message"]), Timestamp: time.Now(),
+			Kind: "chat", HTML: runsHTML(renderer["message"]), Text: runsText(renderer["message"]), Timestamp: time.Now(),
 		}
 		if ts := fmt.Sprint(renderer["timestampUsec"]); ts != "" && ts != "<nil>" {
 			var usec int64
@@ -201,8 +213,26 @@ func parseYouTubeChat(raw []byte) ([]ytItem, string, int, error) {
 			}
 		}
 		yt.Badges = youtubeBadges(renderer["authorBadges"])
-		if kind == "liveChatPaidMessageRenderer" || kind == "liveChatPaidStickerRenderer" {
-			yt.SuperchatAmount = simpleText(renderer["purchaseAmountText"])
+		switch kind {
+		case "liveChatPaidMessageRenderer":
+			yt.Kind = "superchat"
+			yt.AmountText = simpleText(renderer["purchaseAmountText"])
+			yt.HeaderColor = ytColor(renderer["headerBackgroundColor"])
+			yt.BodyColor = ytColor(renderer["bodyBackgroundColor"])
+		case "liveChatPaidStickerRenderer":
+			yt.Kind = "supersticker"
+			yt.AmountText = simpleText(renderer["purchaseAmountText"])
+			yt.StickerURL = bestThumb(digOK(renderer, "sticker", "thumbnails"))
+			yt.HeaderColor = ytColor(renderer["backgroundColor"])
+			yt.BodyColor = yt.HeaderColor
+		case "liveChatMembershipItemRenderer":
+			yt.Kind = "membership"
+			if yt.Text == "" {
+				yt.Text = simpleText(renderer["headerSubtext"])
+				yt.HTML = sanitizeText(yt.Text)
+			}
+			yt.HeaderColor = "#107516"
+			yt.BodyColor = "#0f5f16"
 		}
 		items = append(items, yt)
 	}
@@ -296,10 +326,40 @@ func youtubeLiveURL(id string) string {
 }
 
 func youtubeLiveChatURL(id string) string {
-	if strings.HasPrefix(id, "UC") || strings.HasPrefix(id, "@") || strings.Contains(id, "youtube.com") {
+	videoID := youtubeVideoID(id)
+	if videoID == "" {
 		return ""
 	}
-	return "https://www.youtube.com/live_chat?is_popout=1&v=" + id
+	return "https://www.youtube.com/live_chat?is_popout=1&v=" + videoID
+}
+
+func youtubeVideoID(id string) string {
+	id = strings.TrimSpace(id)
+	if id == "" || strings.HasPrefix(id, "UC") || strings.HasPrefix(id, "@") {
+		return ""
+	}
+	if !strings.Contains(id, "://") {
+		return id
+	}
+	parsed, err := url.Parse(id)
+	if err != nil {
+		return ""
+	}
+	if v := parsed.Query().Get("v"); v != "" {
+		return v
+	}
+	host := strings.TrimPrefix(parsed.Hostname(), "www.")
+	parts := strings.Split(strings.Trim(parsed.Path, "/"), "/")
+	if len(parts) == 0 {
+		return ""
+	}
+	if host == "youtu.be" {
+		return parts[0]
+	}
+	if len(parts) >= 2 && (parts[0] == "live" || parts[0] == "shorts" || parts[0] == "embed") {
+		return parts[1]
+	}
+	return ""
 }
 
 func firstMatch(s, pattern string) string {
@@ -327,6 +387,22 @@ func bestThumb(raw any) string {
 		}
 	}
 	return best
+}
+
+func ytColor(raw any) string {
+	switch value := raw.(type) {
+	case float64:
+		return fmt.Sprintf("#%06x", int(value)&0xffffff)
+	case int:
+		return fmt.Sprintf("#%06x", value&0xffffff)
+	case string:
+		if value == "" || value == "<nil>" {
+			return ""
+		}
+		return value
+	default:
+		return ""
+	}
 }
 
 func dig(root map[string]any, keys ...string) any {

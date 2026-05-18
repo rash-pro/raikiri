@@ -1,0 +1,92 @@
+:root {
+    --accent: var(--widget-accent, #10b981);
+    --bg: rgba(12, 12, 16, var(--widget-bg-alpha, 0.78));
+    --border: rgba(255,255,255,0.16);
+    --text: #ffffff;
+    --muted: rgba(255,255,255,0.76);
+}
+
+body {
+    margin: 0;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--widget-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+    overflow: hidden;
+}
+
+.goal {
+    width: min(var(--widget-width, 720px), calc(100vw - 24px));
+    margin: 12px;
+    padding: 14px 16px 16px;
+    box-sizing: border-box;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--widget-radius, 8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+    backdrop-filter: blur(10px);
+}
+
+.goal[hidden] {
+    display: none;
+}
+
+.goal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+    font-size: clamp(14px, 2vw, 18px);
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+}
+
+#goal-title {
+    color: var(--muted);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#goal-amount {
+    white-space: nowrap;
+}
+
+.goal-track {
+    width: 100%;
+    height: 18px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+.goal-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), #38bdf8);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 48%, transparent);
+    transition: width 450ms ease;
+}
+
+:root[data-widget-theme="minimal"] .goal {
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+:root[data-widget-theme="retro"] .goal {
+    border: 3px solid #fff;
+    box-shadow: 4px 4px 0 #000;
+    backdrop-filter: none;
+}
+
+:root[data-widget-theme="terminal"] .goal {
+    background: rgba(0, 0, 0, var(--widget-bg-alpha, 0.78));
+    border-color: var(--accent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 32%, transparent);
+}

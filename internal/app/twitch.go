@@ -350,9 +350,14 @@ func (a *TwitchEventSubAdapter) handleNotification(payload json.RawMessage) {
 	case "channel.raid":
 		a.emit(Event{Type: "raid", Platform: PlatformTwitch, User: user, Viewers: raw.Event["viewers"]})
 	case "channel.channel_points_custom_reward_redemption.add":
-		a.emit(Event{Type: "channel_points", Platform: PlatformTwitch, User: user, Message: firstString(raw.Event, "user_input")})
+		a.emit(Event{
+			Type: PlatformEventChannelPoints, Platform: PlatformTwitch, User: user,
+			Message: firstString(raw.Event, "user_input"), RewardName: nestedString(raw.Event, "reward", "title"),
+		})
 	}
 }
+
+const PlatformEventChannelPoints = "channel_points"
 
 func firstString(m map[string]any, keys ...string) string {
 	for _, key := range keys {
@@ -361,4 +366,12 @@ func firstString(m map[string]any, keys ...string) string {
 		}
 	}
 	return ""
+}
+
+func nestedString(m map[string]any, key, nestedKey string) string {
+	child, ok := m[key].(map[string]any)
+	if !ok {
+		return ""
+	}
+	return firstString(child, nestedKey)
 }

@@ -42,6 +42,53 @@ body, html {
     transition: transform 0.3s ease-out, opacity 0.3s ease-out;
 }
 
+.message.kind-superchat,
+.message.kind-supersticker,
+.message.kind-membership {
+    --paid-header: #1565c0;
+    --paid-body: #0d47a1;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--paid-header) 82%, #000 18%), color-mix(in srgb, var(--paid-body) 78%, #000 22%));
+    border-color: rgba(255,255,255,0.28);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.28), 0 0 18px color-mix(in srgb, var(--paid-header) 45%, transparent);
+    overflow: hidden;
+    padding-top: 0;
+}
+
+.message.kind-membership {
+    --paid-header: #137333;
+    --paid-body: #0b5726;
+}
+
+.paid-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 -12px 9px -12px;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.22);
+    border-bottom: 1px solid rgba(255,255,255,0.16);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.paid-amount {
+    font-size: 15px;
+    letter-spacing: 0;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.65);
+}
+
+.paid-sticker {
+    display: block;
+    max-width: 116px;
+    max-height: 116px;
+    margin: 6px auto 10px;
+    object-fit: contain;
+}
+
 .slide-in {
     transform: translateX(20px);
     opacity: 0;

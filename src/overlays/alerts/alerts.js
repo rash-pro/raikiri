@@ -31,6 +31,8 @@ function formatAlertText(data, template) {
     // Fallbacks
     switch (data.type) {
         case 'superchat': return `<span>${data.user}</span> sent ${data.currency||''} ${data.amount}`;
+        case 'supersticker': return `<span>${data.user}</span> sent a Super Sticker ${data.amount || ''}`;
+        case 'membership': return `<span>${data.user}</span> became a member!`;
         case 'subscription': return `<span>${data.user}</span> Subscribed! Tier ${data.tier}`;
         case 'bits': return `<span>${data.user}</span> cheered ${data.amount} Bits!`;
         case 'gift': return `<span>${data.user}</span> gifted ${data.count} ${data.giftName}s!`;

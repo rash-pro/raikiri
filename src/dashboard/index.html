@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raikiri v3.0 Admin Dashboard</title>
+    <title>Raikiri v3.1 Admin Dashboard</title>
     <link rel="stylesheet" href="dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
@@ -13,7 +13,7 @@
         <aside class="sidebar">
             <div class="logo">
                 <div class="logo-icon"></div>
-                <h2>Raikiri <span>v3.0</span></h2>
+                <h2>Raikiri <span>v3.1</span></h2>
             </div>
             <nav class="nav-menu">
                 <a href="#platforms" class="nav-item active">
@@ -27,6 +27,10 @@
                 <a href="#overlays" class="nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 12 12 17 22 12"></polyline><polyline points="2 17 12 22 22 17"></polyline></svg>
                     Overlays
+                </a>
+                <a href="#widgets" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+                    Widgets
                 </a>
             </nav>
         </aside>
@@ -44,6 +48,7 @@
 
             <form id="config-form" class="scroll-area" hx-post="/api/config/form" hx-target="#toast" hx-swap="innerHTML">
                 <input type="hidden" id="config-alertsConfig" name="alertsConfig">
+                <input type="hidden" id="config-widgetsConfig" name="widgetsConfig">
                 <!-- PLATFORMS SECTION -->
                 <section id="section-platforms" class="view-section active">
                     <div class="card platform-card twitch">
@@ -293,6 +298,8 @@
                                         <option value="bits">Bits (Cheer)</option>
                                         <option value="raid">Raid</option>
                                         <option value="superchat">Superchat</option>
+                                        <option value="supersticker">Super Sticker</option>
+                                        <option value="membership">Membership</option>
                                         <option value="gift">Gifted Subs</option>
                                         <option value="channel_points">Custom Reward</option>
                                     </select>
@@ -351,6 +358,255 @@
                                     <label>Message Template (Use {user}, {amount}, {tier}, {message})</label>
                                     <input type="text" id="config-alertMessageTemplate" placeholder="¡{user} ha donado {amount} bits!">
                                     <small style="opacity: 0.7; margin-top:5px; display:inline-block;">Leave blank to use default fallback texts.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="section-widgets" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Support Goal</h3>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="widget-supportGoal-enabled">
+                                <label for="widget-supportGoal-enabled"></label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Title</label>
+                                    <input type="text" id="widget-supportGoal-title" placeholder="Support Goal">
+                                </div>
+                                <div class="form-group">
+                                    <label>Currency Label</label>
+                                    <input type="text" id="widget-supportGoal-currency" placeholder="USD">
+                                </div>
+                                <div class="form-group">
+                                    <label>Target Amount</label>
+                                    <input type="number" id="widget-supportGoal-targetAmount" min="1" step="1">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Theme</label>
+                                    <select id="widget-supportGoal-theme">
+                                        <option value="glass">Glass</option>
+                                        <option value="minimal">Minimal</option>
+                                        <option value="cyber">Cyber</option>
+                                        <option value="retro">Retro</option>
+                                        <option value="terminal">Terminal</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Accent Color</label>
+                                    <input type="color" id="widget-supportGoal-accentColor" value="#10b981">
+                                </div>
+                                <div class="form-group">
+                                    <label>Width</label>
+                                    <input type="number" id="widget-supportGoal-width" min="240" max="1920" step="10">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Font Family</label>
+                                    <input type="text" id="widget-supportGoal-fontFamily" placeholder="Inter, system-ui, sans-serif">
+                                </div>
+                                <div class="form-group">
+                                    <label>Background Opacity</label>
+                                    <input type="number" id="widget-supportGoal-backgroundOpacity" min="0" max="100" step="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Border Radius</label>
+                                    <input type="number" id="widget-supportGoal-borderRadius" min="0" max="40" step="1">
+                                </div>
+                            </div>
+                            <div class="url-copy-box">
+                                <div>
+                                    <h4>Support Goal Widget</h4>
+                                    <span class="url">http://localhost:30001/overlay/widgets/support-goal/</span>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/widgets/support-goal/')">Copy</button>
+                                    <button class="btn btn-secondary" type="button" id="testSupportGoalBtn">Test</button>
+                                    <button class="btn btn-secondary" type="button" id="resetSupportGoalBtn">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Events</h3>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="widget-recentEvents-enabled">
+                                <label for="widget-recentEvents-enabled"></label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Max Events</label>
+                                    <input type="number" id="widget-recentEvents-limit" min="1" max="20" step="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Event Types</label>
+                                    <input type="text" id="widget-recentEvents-types" placeholder="superchat,supersticker,membership,subscription,bits,raid,gift,follow">
+                                    <small class="field-note">Comma-separated event type list.</small>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Theme</label>
+                                    <select id="widget-recentEvents-theme">
+                                        <option value="glass">Glass</option>
+                                        <option value="minimal">Minimal</option>
+                                        <option value="cyber">Cyber</option>
+                                        <option value="retro">Retro</option>
+                                        <option value="terminal">Terminal</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Accent Color</label>
+                                    <input type="color" id="widget-recentEvents-accentColor" value="#10b981">
+                                </div>
+                                <div class="form-group">
+                                    <label>Width</label>
+                                    <input type="number" id="widget-recentEvents-width" min="240" max="1920" step="10">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Font Family</label>
+                                    <input type="text" id="widget-recentEvents-fontFamily" placeholder="Inter, system-ui, sans-serif">
+                                </div>
+                                <div class="form-group">
+                                    <label>Background Opacity</label>
+                                    <input type="number" id="widget-recentEvents-backgroundOpacity" min="0" max="100" step="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Border Radius</label>
+                                    <input type="number" id="widget-recentEvents-borderRadius" min="0" max="40" step="1">
+                                </div>
+                            </div>
+                            <label class="inline-check"><input type="checkbox" id="widget-recentEvents-showIcons"> Show Icons</label>
+                            <div class="url-copy-box">
+                                <div>
+                                    <h4>Recent Events Widget</h4>
+                                    <span class="url">http://localhost:30001/overlay/widgets/recent-events/</span>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/widgets/recent-events/')">Copy</button>
+                                    <button class="btn btn-secondary" type="button" id="testRecentEventsBtn">Test</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Custom Widgets</h3>
+                            <button class="btn btn-secondary" type="button" id="addCustomWidgetBtn">Add Widget</button>
+                            <button class="btn btn-secondary" type="button" id="deleteCustomWidgetBtn">Delete</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Widget</label>
+                                    <select id="widget-custom-select"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Name</label>
+                                    <input type="text" id="widget-custom-name" placeholder="Latest supporter">
+                                </div>
+                                <div class="form-group">
+                                    <label>ID</label>
+                                    <input type="text" id="widget-custom-id" placeholder="latest-supporter">
+                                </div>
+                            </div>
+                            <label class="inline-check"><input type="checkbox" id="widget-custom-enabled"> Enabled</label>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Activation Event</label>
+                                    <select id="widget-custom-activationEventType">
+                                        <option value="any">Any Event</option>
+                                        <option value="bits">Bits / Cheer</option>
+                                        <option value="channel_points">Channel Points</option>
+                                        <option value="superchat">Super Chat</option>
+                                        <option value="supersticker">Super Sticker</option>
+                                        <option value="membership">Membership</option>
+                                        <option value="subscription">Subscription</option>
+                                        <option value="gift">Gifted Subs</option>
+                                        <option value="raid">Raid</option>
+                                        <option value="follow">Follow</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Minimum Amount</label>
+                                    <input type="number" id="widget-custom-activationMinAmount" min="0" step="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Reward Name</label>
+                                    <input type="text" id="widget-custom-activationRewardName" placeholder="Exact channel points reward">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Theme</label>
+                                    <select id="widget-custom-theme">
+                                        <option value="glass">Glass</option>
+                                        <option value="minimal">Minimal</option>
+                                        <option value="cyber">Cyber</option>
+                                        <option value="retro">Retro</option>
+                                        <option value="terminal">Terminal</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Accent Color</label>
+                                    <input type="color" id="widget-custom-accentColor" value="#10b981">
+                                </div>
+                                <div class="form-group">
+                                    <label>Width</label>
+                                    <input type="number" id="widget-custom-width" min="240" max="1920" step="10">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Font Family</label>
+                                    <input type="text" id="widget-custom-fontFamily" placeholder="Inter, system-ui, sans-serif">
+                                </div>
+                                <div class="form-group">
+                                    <label>Background Opacity</label>
+                                    <input type="number" id="widget-custom-backgroundOpacity" min="0" max="100" step="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Border Radius</label>
+                                    <input type="number" id="widget-custom-borderRadius" min="0" max="40" step="1">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>HTML</label>
+                                    <textarea id="widget-custom-html" spellcheck="false"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>CSS</label>
+                                    <textarea id="widget-custom-css" spellcheck="false"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>JavaScript</label>
+                                <textarea id="widget-custom-js" spellcheck="false"></textarea>
+                                <small class="field-note">Custom scripts receive live updates through the window event `raikiri:state`.</small>
+                            </div>
+                            <div class="url-copy-box">
+                                <div>
+                                    <h4>Custom Widget URL</h4>
+                                    <span class="url" id="widget-custom-url">http://localhost:30001/overlay/widgets/custom/?id=</span>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn btn-secondary" type="button" id="copyCustomWidgetBtn">Copy</button>
+                                    <button class="btn btn-secondary" type="button" id="testCustomWidgetBtn">Test</button>
                                 </div>
                             </div>
                         </div>
