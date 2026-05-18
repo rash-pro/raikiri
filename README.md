@@ -2,12 +2,12 @@
 
 Raikiri is a self-hosted streaming interaction hub for OBS. It aggregates live chat and stream events into local browser overlays, alert scenes, and browser-based TTS audio.
 
-This is the native Go rewrite. It ships as a small standalone binary and does not require Docker, Bun, Node, or `node_modules` for normal use.
+This is the native Go rewrite. It ships as a small standalone binary. If you need the previous Bun/Docker implementation, it remains available at tag `2.1.2`.
 
 ## Version Line
 
 - **Current line:** Raikiri Native, built in Go.
-- **Previous Bun/Docker line:** preserved up to tag `2.1.2`.
+- **Previous line:** the Bun/Docker implementation remains available at tag `2.1.2`.
 - **Phase 1 native platforms:** Twitch and YouTube Live.
 - **Phase 2 planned platforms:** Kick and TikTok. They are intentionally disabled in the native dashboard until their adapters are implemented.
 
@@ -231,7 +231,7 @@ Measured locally on the native Go build:
 - Idle RSS: about `16 MB`.
 - RSS after dashboard/config/chat/alert activity: about `23 MB`.
 
-For comparison, the previous Docker image was about `520 MB`, and the old `node_modules` tree was about `197 MB`.
+For comparison, the previous `2.1.2` Docker-based release used a much larger distribution footprint.
 
 ## Architecture
 
@@ -250,9 +250,9 @@ For comparison, the previous Docker image was about `520 MB`, and the old `node_
 - Kick and TikTok are intentionally deferred to Phase 2.
 - Keep `--data-dir` somewhere persistent. It contains your config, media, and auth tokens.
 
-## Legacy Bun/Docker Version
+## Previous Version
 
-If you need the older Bun/Docker implementation, use tag `2.1.2`.
+If you need the pre-native implementation, use tag `2.1.2`.
 
 ```bash
 git checkout 2.1.2
