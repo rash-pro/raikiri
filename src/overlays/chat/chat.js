@@ -1,6 +1,6 @@
 import { prepareRichInline, materializeRichInlineLineRange, walkRichInlineLineRanges } from "https://esm.sh/@chenglou/pretext@latest/rich-inline";
+import { connectEvents } from "/shared/ws-client.js";
 
-const socket = io('/chat');
 const chatContainer = document.getElementById('chat-container');
 
 // URL params configuration
@@ -46,9 +46,9 @@ fetch('/api/config')
     .then(applyConfig)
     .catch(console.error);
 
-socket.on('config', (config) => {
+function onConfig(config) {
     applyConfig(config);
-});
+}
 
 function enforceMessageLimit() {
     while (chatContainer.children.length > maxMessages) {
@@ -202,7 +202,7 @@ function createMessageElement(msg) {
     return el;
 }
 
-socket.on('message', async (msg) => {
+async function onMessage(msg) {
     if (!allowedPlatforms.includes(msg.platform)) return;
     
     if (currentConfig.chatTheme === 'ffvi') {
@@ -222,9 +222,11 @@ socket.on('message', async (msg) => {
     });
     
     enforceMessageLimit();
-});
+}
 
 // For testing connection
-socket.on('connect', () => {
-    console.log('Connected to Chat Overlay namespace');
+connectEvents('/ws/chat', {
+    config: onConfig,
+    message: onMessage,
+    connect: () => console.log('Connected to Chat Overlay WebSocket')
 });

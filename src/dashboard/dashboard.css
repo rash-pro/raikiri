@@ -188,6 +188,33 @@ body {
 .platform-card.kick .platform-icon { background: var(--kick-color); color: #000; }
 .platform-card.tiktok .platform-icon { background: var(--tiktok-color); }
 
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    margin-left: 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.16);
+    color: rgba(255,255,255,0.72);
+    font-size: 11px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.field-note {
+    display: block;
+    margin-top: 8px;
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+input:disabled {
+    cursor: not-allowed;
+    opacity: 0.58;
+}
+
 /* FORMS */
 .form-group {
     margin-bottom: 20px;

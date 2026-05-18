@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raikiri Admin Dashboard</title>
+    <title>Raikiri v3.0 Admin Dashboard</title>
     <link rel="stylesheet" href="dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
 <body>
     <div class="app-layout">
         <aside class="sidebar">
             <div class="logo">
                 <div class="logo-icon"></div>
-                <h2>Raikiri <span>v2.0</span></h2>
+                <h2>Raikiri <span>v3.0</span></h2>
             </div>
             <nav class="nav-menu">
                 <a href="#platforms" class="nav-item active">
@@ -37,11 +38,12 @@
                     <p id="page-subtitle">Connect your streaming accounts for real-time events.</p>
                 </div>
                 <div class="actions">
-                    <button class="btn btn-primary" id="saveBtn">Save Configuration</button>
+                    <button class="btn btn-primary" id="saveBtn" type="submit" form="config-form">Save Configuration</button>
                 </div>
             </header>
 
-            <div class="scroll-area">
+            <form id="config-form" class="scroll-area" hx-post="/api/config/form" hx-target="#toast" hx-swap="innerHTML">
+                <input type="hidden" id="config-alertsConfig" name="alertsConfig">
                 <!-- PLATFORMS SECTION -->
                 <section id="section-platforms" class="view-section active">
                     <div class="card platform-card twitch">
@@ -53,6 +55,10 @@
                             <div class="form-group">
                                 <label>Client ID</label>
                                 <input type="text" id="config-twitchClientId" placeholder="Your Twitch Application Client ID">
+                            </div>
+                            <div class="form-group">
+                                <label>Channel Username</label>
+                                <input type="text" id="config-twitchChannel" placeholder="yourchannel">
                             </div>
                             <div class="button-group">
                                 <button class="btn btn-twitch" id="authTwitchBtn">Authenticate Device</button>
@@ -80,12 +86,13 @@
                     <div class="card platform-card kick">
                         <div class="card-header">
                             <div class="platform-icon">Ki</div>
-                            <h3>Kick Connector</h3>
+                            <h3>Kick Connector <span class="status-pill">Phase 2</span></h3>
                         </div>
                         <div class="card-body">
                             <div class="form-group">
                                 <label>Channel Username</label>
-                                <input type="text" id="config-kickUsername" placeholder="kickUsername">
+                                <input type="text" id="config-kickUsername" placeholder="Kick support is not available in this native build" disabled>
+                                <small class="field-note">Kick is disabled until the Phase 2 adapter is implemented.</small>
                             </div>
                         </div>
                     </div>
@@ -93,12 +100,13 @@
                     <div class="card platform-card tiktok">
                         <div class="card-header">
                             <div class="platform-icon">Tt</div>
-                            <h3>TikTok Live</h3>
+                            <h3>TikTok Live <span class="status-pill">Phase 2</span></h3>
                         </div>
                         <div class="card-body">
                             <div class="form-group">
                                 <label>TikTok @Username</label>
-                                <input type="text" id="config-tiktokUsername" placeholder="@youraccount">
+                                <input type="text" id="config-tiktokUsername" placeholder="TikTok support is not available in this native build" disabled>
+                                <small class="field-note">TikTok is disabled until the Phase 2 adapter is implemented.</small>
                             </div>
                         </div>
                     </div>
@@ -348,13 +356,13 @@
                         </div>
                     </div>
                 </section>
-            </div>
+            </form>
         </main>
     </div>
 
     <!-- Notification Toast -->
     <div id="toast" class="toast">Saved Successfully!</div>
 
-    <script src="dashboard.js"></script>
+    <script type="module" src="dashboard.js"></script>
 </body>
 </html>

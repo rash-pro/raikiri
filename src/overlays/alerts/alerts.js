@@ -1,4 +1,5 @@
-const socket = io('/alerts');
+import { connectEvents } from "/shared/ws-client.js";
+
 const container = document.getElementById('alert-container');
 
 let isPlaying = false;
@@ -12,9 +13,11 @@ fetch('/api/config').then(r => r.json()).then(conf => {
 
 // If backend broadcasts config changes to global we could listen, but reload is fine for overlays usually.
 
-socket.on('alert', (data) => {
+connectEvents('/ws/alerts', {
+    alert: (data) => {
     queue.push(data);
     processQueue();
+    }
 });
 
 function formatAlertText(data, template) {

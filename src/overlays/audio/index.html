@@ -41,9 +41,9 @@
     <button id="enable-audio-btn" style="display:none;">Enable Audio</button>
     <audio id="audio-output" autoplay playsinline></audio>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io('/audio');
+    <script type="module">
+        import { connectEvents } from "/shared/ws-client.js";
+
         const statusEl = document.getElementById('status');
         const btn = document.getElementById('enable-audio-btn');
         const audioOutput = document.getElementById('audio-output');
@@ -101,7 +101,15 @@
             }
         });
 
+        function normalizeAudioPayload(data) {
+            if (typeof data.buffer === 'string') {
+                return { ...data, buffer: Uint8Array.from(atob(data.buffer), c => c.charCodeAt(0)) };
+            }
+            return data;
+        }
+
         async function playAudioPayload(data) {
+            data = normalizeAudioPayload(data);
             loadAudio(data.buffer, data.volume);
             await audioOutput.play();
             audioUnlocked = true;
@@ -130,19 +138,20 @@
 
         btn.addEventListener('click', unlockAudio);
 
-        socket.on('connect', () => {
-            if (!audioUnlocked) {
-                statusEl.innerText = "Connected. Autoplay will be attempted on the next sound.";
-            }
-        });
-
-        socket.on('play_audio', async (data) => {
-            try {
-                await playAudioPayload(data);
-            } catch (err) {
-                console.warn("Audio playback blocked or failed:", err);
-                pendingAudio = data;
-                setBlockedState();
+        connectEvents('/ws/audio', {
+            connect: () => {
+                if (!audioUnlocked) {
+                    statusEl.innerText = "Connected. Autoplay will be attempted on the next sound.";
+                }
+            },
+            play_audio: async (data) => {
+                try {
+                    await playAudioPayload(data);
+                } catch (err) {
+                    console.warn("Audio playback blocked or failed:", err);
+                    pendingAudio = data;
+                    setBlockedState();
+                }
             }
         });
     </script>

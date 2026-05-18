@@ -31,11 +31,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentConfig = {};
 
+    document.querySelectorAll('[id^="config-"]').forEach(el => {
+        if (!el.name) el.name = el.id.replace('config-', '');
+    });
+
     // Build payload to save config
     function saveConfig() {
         const payload = {};
         
-        ['twitchClientId', 'youtubeChannelId', 'kickUsername', 'tiktokUsername', 
+        ['twitchClientId', 'twitchChannel', 'youtubeChannelId',
          'ttsEnabled', 'ttsVoice', 'ttsMinBits', 'audioMode', 'ttsSubTier', 'audioVolume',
          'ttsRewardEnabled', 'ttsRewardName', 'ttsCmdEnabled', 'ttsCmdPrefix', 
          'ttsCmdMod', 'ttsCmdSub', 'ttsCmdVip', 'ttsCmdHost',
@@ -110,21 +114,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Save Config
-    document.getElementById('saveBtn').addEventListener('click', async () => {
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        if (event.target.id !== 'config-form') return;
         const payload = saveConfig();
+        event.detail.parameters = {};
+        Object.entries(payload).forEach(([key, value]) => {
+            event.detail.parameters[key] = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        });
+    });
 
-        try {
-            const res = await fetch('/api/config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (res.ok) {
-                showToast('Configuration Saved!');
-            }
-        } catch (err) {
-            alert('Failed to save config');
+    document.body.addEventListener('htmx:afterRequest', (event) => {
+        if (event.target.id !== 'config-form') return;
+        if (event.detail.successful) {
+            showToast(document.getElementById('toast').innerText || 'Configuration Saved!');
+            loadConfig();
+        } else {
+            alert(event.detail.xhr.responseText || 'Failed to save config');
         }
     });
 
