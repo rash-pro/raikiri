@@ -1,9 +1,0 @@
-services:
-  raikiri:
-    build: .
-    container_name: raikiri
-    ports:
-      - "30001:30001"
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
