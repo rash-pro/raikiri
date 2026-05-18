@@ -80,7 +80,7 @@ export class TwitchChatAdapter extends PlatformAdapter {
       const tail = message.substring(rep.end + 1, lastIndex);
       result = sanitizeMessage(tail) + result;
 
-      const emoteUrl = `https://static-cdn.jtvnw.net/emoticons/v2/${rep.id}/default/dark/1.0`;
+      const emoteUrl = `https://static-cdn.jtvnw.net/emoticons/v2/${rep.id}/default/dark/3.0`;
       const imgTag = `<img src="${emoteUrl}" class="emote" alt="emote">`;
       result = imgTag + result;
 

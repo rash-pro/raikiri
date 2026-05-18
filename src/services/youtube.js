@@ -81,13 +81,21 @@ class YouTubeService {
         });
     }
 
+    getBestEmojiThumbnail(thumbnails) {
+        if (!Array.isArray(thumbnails) || thumbnails.length === 0) return undefined;
+
+        return thumbnails
+            .filter(thumbnail => thumbnail?.url)
+            .sort((a, b) => ((b.width || 0) * (b.height || 0)) - ((a.width || 0) * (a.height || 0)))[0]?.url;
+    }
+
     parseMessage(messageRuns) {
         if (!Array.isArray(messageRuns)) return '';
 
         return messageRuns.map(run => {
             // Case 1: Nested emoji object (Legacy/Standard)
             if (run.emoji) {
-                const url = run.emoji.image?.thumbnails?.[0]?.url;
+                const url = this.getBestEmojiThumbnail(run.emoji.image?.thumbnails);
                 if (url) return `<img src="${url}" class="emote" alt="${run.emoji.emojiId || 'emote'}">`;
                 return run.text || run.emoji.shortcuts?.[0] || '';
             }
