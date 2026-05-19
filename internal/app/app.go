@@ -421,9 +421,31 @@ func (a *App) routeEvent(evt Event) {
 	a.hub.Publish("alerts", "alert", evt)
 	a.publishWidgetState(context.Background())
 	a.publishCustomWidgetEvent(evt)
+	cfg := a.config()
 	if evt.Type == "superchat" || evt.Type == "supersticker" || evt.Type == "membership" || evt.Type == "subscription" || evt.Type == "bits" || evt.Type == "gift" {
-		a.tts.EnqueueEvent(context.Background(), evt, a.config())
+		a.tts.EnqueueEvent(context.Background(), evt, cfg)
 	}
+	if text, ok := ttsRewardText(evt, cfg); ok {
+		a.tts.Enqueue(context.Background(), text, cfg)
+	}
+}
+
+func ttsRewardText(evt Event, cfg AppConfig) (string, bool) {
+	if evt.Type != PlatformEventChannelPoints || !cfg.TTSRewardEnabled {
+		return "", false
+	}
+	if cfg.TTSRewardName != "" && !strings.EqualFold(strings.TrimSpace(evt.RewardName), strings.TrimSpace(cfg.TTSRewardName)) {
+		return "", false
+	}
+	message := strings.TrimSpace(evt.Message)
+	if message == "" {
+		return "", false
+	}
+	user := strings.TrimSpace(evt.User)
+	if user == "" {
+		user = "Alguien"
+	}
+	return user + " dice: " + message, true
 }
 
 func (a *App) publishCustomWidgetEvent(evt Event) {

@@ -176,12 +176,11 @@ func twitchMessageBadges(message twitch.PrivateMessage) []Badge {
 	}
 
 	for name := range message.User.Badges {
-		switch name {
-		case "broadcaster":
-			add("owner")
-		case "moderator", "vip", "subscriber":
-			add(name)
-		}
+		addTwitchRoleBadge(name, add)
+	}
+	for _, rawBadge := range strings.Split(message.Tags["badges"], ",") {
+		name, _, _ := strings.Cut(rawBadge, "/")
+		addTwitchRoleBadge(name, add)
 	}
 
 	if message.Tags["user-type"] == "mod" || message.Tags["mod"] == "1" {
@@ -195,6 +194,17 @@ func twitchMessageBadges(message twitch.PrivateMessage) []Badge {
 	}
 
 	return badges
+}
+
+func addTwitchRoleBadge(name string, add func(string)) {
+	switch kind := strings.ToLower(strings.TrimSpace(name)); kind {
+	case "broadcaster":
+		add("owner")
+	case "moderator", "vip":
+		add(kind)
+	case "subscriber", "founder":
+		add("subscriber")
+	}
 }
 
 func renderTwitchMessage(message string, emotes []*twitch.Emote) string {

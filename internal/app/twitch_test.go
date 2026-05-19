@@ -34,6 +34,36 @@ func TestTwitchMessageBadgesDetectsSubscriberFromTags(t *testing.T) {
 	}
 }
 
+func TestTwitchMessageBadgesDetectsVIPFromRawBadgesTag(t *testing.T) {
+	badges := twitchMessageBadges(twitch.PrivateMessage{
+		User: twitch.User{
+			Name:   "vipuser",
+			Badges: map[string]int{},
+		},
+		Tags: map[string]string{"badges": "vip/1"},
+	})
+
+	if !hasBadgeType(badges, "vip") {
+		t.Fatalf("expected vip badge from Twitch raw badges tag, got %#v", badges)
+	}
+}
+
+func TestTwitchMessageBadgesDetectsFounderAsSubscriber(t *testing.T) {
+	badges := twitchMessageBadges(twitch.PrivateMessage{
+		User: twitch.User{
+			Name: "founderuser",
+			Badges: map[string]int{
+				"founder": 0,
+			},
+		},
+		Tags: map[string]string{},
+	})
+
+	if !hasBadgeType(badges, "subscriber") {
+		t.Fatalf("expected founder badge to count as subscriber, got %#v", badges)
+	}
+}
+
 func TestTwitchMessageBadgesDeduplicatesRoles(t *testing.T) {
 	badges := twitchMessageBadges(twitch.PrivateMessage{
 		User: twitch.User{
