@@ -1,6 +1,9 @@
 package app
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type Platform string
 
@@ -142,6 +145,7 @@ type AppConfig struct {
 	TTSRewardName    string `json:"ttsRewardName"`
 	TTSCmdEnabled    bool   `json:"ttsCmdEnabled"`
 	TTSCmdPrefix     string `json:"ttsCmdPrefix"`
+	TTSBlockedWords  string `json:"ttsBlockedWords"`
 	TTSCmdMod        bool   `json:"ttsCmdMod"`
 	TTSCmdSub        bool   `json:"ttsCmdSub"`
 	TTSCmdVip        bool   `json:"ttsCmdVip"`
@@ -159,7 +163,7 @@ func DefaultConfig() AppConfig {
 	return AppConfig{
 		TTSEnabled: true, TTSVoice: "es-MX-DaliaNeural", TTSMinBits: 100, TTSSubTier: 3,
 		AudioMode: "websocket", AudioVol: 50,
-		TTSCmdPrefix: "!voz", TTSCmdMod: true, TTSCmdHost: true,
+		TTSCmdPrefix: "!voz", TTSBlockedWords: defaultTTSBlockedWords(), TTSCmdMod: true, TTSCmdHost: true,
 		ChatTheme: "glassmorphism", ChatFontSize: 15, ChatHideAfter: 30, ChatAnimations: true,
 		WidgetsConfig: WidgetsConfig{
 			SupportGoal: SupportGoalConfig{
@@ -184,6 +188,132 @@ func DefaultConfig() AppConfig {
 			"channel_points": {Enabled: true, Theme: "cyberpurple", MessageTemplate: "{user} dice: {message}"},
 		},
 	}
+}
+
+func defaultTTSBlockedWords() string {
+	return strings.Join([]string{
+		"puta",
+		"puto",
+		"putas",
+		"putos",
+		"putazo",
+		"putiza",
+		"pendejo",
+		"pendeja",
+		"pendejos",
+		"pendejas",
+		"pendejada",
+		"pendejadas",
+		"cabron",
+		"cabrón",
+		"cabrona",
+		"cabrones",
+		"cabronazo",
+		"chingar",
+		"chingada",
+		"chingado",
+		"chingadera",
+		"chingaderas",
+		"chingas",
+		"chinga",
+		"chingon",
+		"chingón",
+		"chingona",
+		"chingue",
+		"verga",
+		"vergazo",
+		"verguiza",
+		"verguero",
+		"mierda",
+		"mierdas",
+		"culero",
+		"culera",
+		"culeros",
+		"culeras",
+		"culito",
+		"culo",
+		"coño",
+		"cono",
+		"joder",
+		"jodido",
+		"jodida",
+		"jodidos",
+		"jodidas",
+		"jodiendo",
+		"idiota",
+		"idiotas",
+		"imbecil",
+		"imbécil",
+		"imbeciles",
+		"imbéciles",
+		"estupido",
+		"estúpido",
+		"estupida",
+		"estúpida",
+		"estupidos",
+		"estúpidos",
+		"estupidas",
+		"estúpidas",
+		"mamon",
+		"mamón",
+		"mamona",
+		"mamones",
+		"mamadas",
+		"mamado",
+		"gilipollas",
+		"carajo",
+		"carajazo",
+		"pinche",
+		"pinches",
+		"maldito",
+		"maldita",
+		"malditos",
+		"malditas",
+		"zorra",
+		"zorras",
+		"perra",
+		"perras",
+		"cojones",
+		"cojer",
+		"coger",
+		"cogiendo",
+		"cojiendo",
+		"cojido",
+		"cogido",
+		"pito",
+		"pitos",
+		"pija",
+		"pijas",
+		"vagina",
+		"vaginas",
+		"pene",
+		"penes",
+		"ano",
+		"anos",
+		"nalgas",
+		"tetona",
+		"tetonas",
+		"tetas",
+		"chichi",
+		"chichis",
+		"chaqueta",
+		"puñeta",
+		"puneta",
+		"puñetas",
+		"punetas",
+		"boludo",
+		"boluda",
+		"pelotudo",
+		"pelotuda",
+		"weon",
+		"weón",
+		"huevon",
+		"huevón",
+		"huevona",
+		"guey",
+		"güey",
+		"wey",
+	}, "\n")
 }
 
 func DefaultWidgetAppearance(width int, showIcons bool) WidgetAppearance {

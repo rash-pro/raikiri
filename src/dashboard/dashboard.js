@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         ['twitchClientId', 'twitchChannel', 'youtubeChannelId',
          'ttsEnabled', 'ttsVoice', 'ttsMinBits', 'audioMode', 'ttsSubTier', 'audioVolume',
-         'ttsRewardEnabled', 'ttsRewardName', 'ttsCmdEnabled', 'ttsCmdPrefix', 
+         'ttsRewardEnabled', 'ttsRewardName', 'ttsCmdEnabled', 'ttsCmdPrefix', 'ttsBlockedWords',
          'ttsCmdMod', 'ttsCmdSub', 'ttsCmdVip', 'ttsCmdHost',
          'chatTheme', 'chatFontSize', 'chatHideAfter', 'chatAnimations'].forEach(key => {
             const el = document.getElementById(`config-${key}`);

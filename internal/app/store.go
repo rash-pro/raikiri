@@ -96,7 +96,7 @@ func (s *Store) SaveConfig(ctx context.Context, cfg AppConfig) error {
 		"kickUsername": cfg.KickUsername, "tiktokUsername": cfg.TikTokUsername, "ttsEnabled": cfg.TTSEnabled,
 		"ttsVoice": cfg.TTSVoice, "ttsMinBits": cfg.TTSMinBits, "ttsSubTier": cfg.TTSSubTier, "audioMode": cfg.AudioMode,
 		"audioVolume": cfg.AudioVol, "ttsRewardEnabled": cfg.TTSRewardEnabled, "ttsRewardName": cfg.TTSRewardName,
-		"ttsCmdEnabled": cfg.TTSCmdEnabled, "ttsCmdPrefix": cfg.TTSCmdPrefix, "ttsCmdMod": cfg.TTSCmdMod,
+		"ttsCmdEnabled": cfg.TTSCmdEnabled, "ttsCmdPrefix": cfg.TTSCmdPrefix, "ttsBlockedWords": cfg.TTSBlockedWords, "ttsCmdMod": cfg.TTSCmdMod,
 		"ttsCmdSub": cfg.TTSCmdSub, "ttsCmdVip": cfg.TTSCmdVip, "ttsCmdHost": cfg.TTSCmdHost, "chatTheme": cfg.ChatTheme,
 		"chatFontSize": cfg.ChatFontSize, "chatHideAfter": cfg.ChatHideAfter, "chatAnimations": cfg.ChatAnimations,
 		"alertsConfig": cfg.AlertsConfig, "widgetsConfig": cfg.WidgetsConfig,
@@ -268,6 +268,7 @@ func applyConfigValues(cfg *AppConfig, values map[string]string) {
 	set("ttsRewardName", &cfg.TTSRewardName)
 	set("ttsCmdEnabled", &cfg.TTSCmdEnabled)
 	set("ttsCmdPrefix", &cfg.TTSCmdPrefix)
+	set("ttsBlockedWords", &cfg.TTSBlockedWords)
 	set("ttsCmdMod", &cfg.TTSCmdMod)
 	set("ttsCmdSub", &cfg.TTSCmdSub)
 	set("ttsCmdVip", &cfg.TTSCmdVip)

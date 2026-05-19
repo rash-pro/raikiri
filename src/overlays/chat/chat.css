@@ -113,6 +113,11 @@ body, html {
     opacity: 0.9;
 }
 
+.platform-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
 .message-content {
     font-weight: 400;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
@@ -286,6 +291,10 @@ body, html {
 }
 .theme-cyberpurple .message-header {
     margin-bottom: 2px;
+}
+.theme-cyberpurple .platform-icon svg {
+    width: 20px;
+    height: 20px;
 }
 
 @keyframes fadeOut {

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	edge_tts "github.com/bytectlgo/edge-tts/pkg/edge_tts"
 )
@@ -68,6 +69,14 @@ func (t *TTSEngine) enqueue(ctx context.Context, text, voice string, cfg AppConf
 		return
 	}
 	text = strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(text, "<", ""), ">", ""))
+	if ttsContainsBlockedWord(text, cfg.TTSBlockedWords) {
+		t.logger.Info("tts skipped because text matched blocked word list")
+		return
+	}
+	if ttsLooksRepetitive(text) {
+		t.logger.Info("tts skipped because text looks repetitive")
+		return
+	}
 	if len(text) > 150 {
 		text = text[:150]
 	}
@@ -130,4 +139,147 @@ func synthesizeEdge(ctx context.Context, text, voice string) ([]byte, error) {
 		return nil, fmt.Errorf("edge tts returned no audio")
 	}
 	return buf.Bytes(), nil
+}
+
+func ttsContainsBlockedWord(text, blockedWords string) bool {
+	normalizedText := " " + normalizeTTSFilterText(text) + " "
+	for _, blocked := range strings.FieldsFunc(blockedWords, func(r rune) bool {
+		return r == '\n' || r == ',' || r == ';'
+	}) {
+		normalizedBlocked := normalizeTTSFilterText(blocked)
+		if normalizedBlocked == "" {
+			continue
+		}
+		if strings.Contains(normalizedText, " "+normalizedBlocked+" ") {
+			return true
+		}
+	}
+	return false
+}
+
+func normalizeTTSFilterText(value string) string {
+	value = strings.ToLower(value)
+	var b strings.Builder
+	lastWasSpace := true
+	for _, r := range value {
+		r = normalizeSpanishRune(r)
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			b.WriteRune(r)
+			lastWasSpace = false
+			continue
+		}
+		if !lastWasSpace {
+			b.WriteByte(' ')
+			lastWasSpace = true
+		}
+	}
+	return strings.TrimSpace(b.String())
+}
+
+func normalizeSpanishRune(r rune) rune {
+	switch r {
+	case 'á', 'à', 'ä', 'â':
+		return 'a'
+	case 'é', 'è', 'ë', 'ê':
+		return 'e'
+	case 'í', 'ì', 'ï', 'î':
+		return 'i'
+	case 'ó', 'ò', 'ö', 'ô':
+		return 'o'
+	case 'ú', 'ù', 'ü', 'û':
+		return 'u'
+	default:
+		return r
+	}
+}
+
+func ttsLooksRepetitive(text string) bool {
+	normalized := normalizeTTSFilterText(text)
+	if normalized == "" {
+		return false
+	}
+
+	for _, token := range strings.Fields(normalized) {
+		if hasLongRepeatedRune(token, 6) || isRepeatedShortPattern(token, 4, 4) || isNoisyRepeatedShortPattern(token, 4) {
+			return true
+		}
+	}
+
+	words := strings.Fields(normalized)
+	if len(words) < 4 {
+		return false
+	}
+	repeats := 1
+	for i := 1; i < len(words); i++ {
+		if words[i] == words[i-1] {
+			repeats++
+			if repeats >= 4 {
+				return true
+			}
+			continue
+		}
+		repeats = 1
+	}
+	return false
+}
+
+func hasLongRepeatedRune(token string, maxAllowed int) bool {
+	var prev rune
+	count := 0
+	for _, r := range token {
+		if r == prev {
+			count++
+		} else {
+			prev = r
+			count = 1
+		}
+		if count > maxAllowed {
+			return true
+		}
+	}
+	return false
+}
+
+func isRepeatedShortPattern(token string, maxPatternLen, minRepeats int) bool {
+	runes := []rune(token)
+	if len(runes) < maxPatternLen*minRepeats {
+		return false
+	}
+	for patternLen := 1; patternLen <= maxPatternLen; patternLen++ {
+		if len(runes)%patternLen != 0 || len(runes)/patternLen < minRepeats {
+			continue
+		}
+		matches := true
+		for i := patternLen; i < len(runes); i++ {
+			if runes[i] != runes[i%patternLen] {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			return true
+		}
+	}
+	return false
+}
+
+func isNoisyRepeatedShortPattern(token string, maxPatternLen int) bool {
+	runes := []rune(token)
+	if len(runes) < 16 {
+		return false
+	}
+	for patternLen := 1; patternLen <= maxPatternLen; patternLen++ {
+		matches := 0
+		total := 0
+		for i := 0; i+patternLen < len(runes); i++ {
+			total++
+			if runes[i] == runes[i+patternLen] {
+				matches++
+			}
+		}
+		if total > 0 && float64(matches)/float64(total) >= 0.72 {
+			return true
+		}
+	}
+	return false
 }

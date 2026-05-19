@@ -358,13 +358,62 @@ func (a *App) handleTwitchDeviceCode(w http.ResponseWriter, r *http.Request) {
 func (a *App) routeChat(msg ChatMessage) {
 	a.hub.Publish("chat", "message", msg)
 	cfg := a.config()
-	if !cfg.TTSCmdEnabled || !strings.HasPrefix(strings.ToLower(strings.TrimSpace(msg.Content)), strings.ToLower(cfg.TTSCmdPrefix)) {
+	if !cfg.TTSCmdEnabled {
 		return
 	}
-	text := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(msg.Content), cfg.TTSCmdPrefix))
+	text, ok := ttsCommandText(msg.Content, cfg.TTSCmdPrefix)
+	if !ok {
+		return
+	}
+	if !ttsCommandAllowed(msg, cfg) {
+		return
+	}
 	if text != "" {
 		a.tts.Enqueue(context.Background(), msg.DisplayName+" dice: "+text, cfg)
 	}
+}
+
+func ttsCommandText(content, prefix string) (string, bool) {
+	content = strings.TrimSpace(content)
+	prefix = strings.TrimSpace(prefix)
+	if content == "" || prefix == "" || len(content) < len(prefix) {
+		return "", false
+	}
+	if !strings.EqualFold(content[:len(prefix)], prefix) {
+		return "", false
+	}
+	if len(content) > len(prefix) && !isSpace(content[len(prefix)]) {
+		return "", false
+	}
+	return strings.TrimSpace(content[len(prefix):]), true
+}
+
+func isSpace(b byte) bool {
+	return b == ' ' || b == '\t' || b == '\n' || b == '\r'
+}
+
+func ttsCommandAllowed(msg ChatMessage, cfg AppConfig) bool {
+	for _, badge := range msg.Badges {
+		switch strings.ToLower(badge.Type) {
+		case "owner":
+			if cfg.TTSCmdHost {
+				return true
+			}
+		case "moderator":
+			if cfg.TTSCmdMod {
+				return true
+			}
+		case "subscriber":
+			if cfg.TTSCmdSub {
+				return true
+			}
+		case "vip":
+			if cfg.TTSCmdVip {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (a *App) routeEvent(evt Event) {
@@ -501,6 +550,9 @@ func mergeConfig(old AppConfig, incoming AppConfig) AppConfig {
 	if incoming.TTSCmdPrefix == "" {
 		incoming.TTSCmdPrefix = old.TTSCmdPrefix
 	}
+	if incoming.TTSBlockedWords == "" {
+		incoming.TTSBlockedWords = old.TTSBlockedWords
+	}
 	return incoming
 }
 
@@ -534,6 +586,7 @@ func applyConfigPatch(cfg *AppConfig, patch map[string]json.RawMessage) error {
 		{"ttsRewardName", &cfg.TTSRewardName},
 		{"ttsCmdEnabled", &cfg.TTSCmdEnabled},
 		{"ttsCmdPrefix", &cfg.TTSCmdPrefix},
+		{"ttsBlockedWords", &cfg.TTSBlockedWords},
 		{"ttsCmdMod", &cfg.TTSCmdMod},
 		{"ttsCmdSub", &cfg.TTSCmdSub},
 		{"ttsCmdVip", &cfg.TTSCmdVip},
