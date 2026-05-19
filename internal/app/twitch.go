@@ -5,11 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/coder/websocket"
 	twitch "github.com/gempir/go-twitch-irc/v4"
@@ -122,15 +126,16 @@ func (t *TwitchAuth) AuthenticatedUserName(ctx context.Context, accessToken stri
 }
 
 type TwitchChatAdapter struct {
-	cfg    AppConfig
-	store  *Store
-	logger *slog.Logger
-	emit   func(ChatMessage)
-	client *twitch.Client
+	cfg          AppConfig
+	store        *Store
+	logger       *slog.Logger
+	emit         func(ChatMessage)
+	client       *twitch.Client
+	emoteCatalog *thirdPartyEmoteCache
 }
 
 func NewTwitchChatAdapter(cfg AppConfig, store *Store, logger *slog.Logger, emit func(ChatMessage)) *TwitchChatAdapter {
-	return &TwitchChatAdapter{cfg: cfg, store: store, logger: logger.With("adapter", "twitch_chat"), emit: emit}
+	return &TwitchChatAdapter{cfg: cfg, store: store, logger: logger.With("adapter", "twitch_chat"), emit: emit, emoteCatalog: newThirdPartyEmoteCache()}
 }
 
 func (a *TwitchChatAdapter) Start(ctx context.Context) {
@@ -143,7 +148,8 @@ func (a *TwitchChatAdapter) Start(ctx context.Context) {
 	a.client.Join(a.cfg.TwitchChannel)
 	a.client.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		badges := twitchMessageBadges(message)
-		html := renderTwitchMessage(message.Message, message.Emotes)
+		thirdPartyEmotes := a.emoteCatalog.Emotes(context.Background(), message.RoomID, message.Channel, a.logger)
+		html := renderTwitchMessage(message.Message, message.Emotes, thirdPartyEmotes)
 		a.emit(ChatMessage{
 			ID: message.ID, Platform: PlatformTwitch, User: message.User.Name, DisplayName: message.User.DisplayName,
 			Content: sanitizeText(message.Message), HTMLContent: html, Color: message.User.Color, Badges: badges, Timestamp: message.Time,
@@ -207,33 +213,80 @@ func addTwitchRoleBadge(name string, add func(string)) {
 	}
 }
 
-func renderTwitchMessage(message string, emotes []*twitch.Emote) string {
-	if len(emotes) == 0 {
-		return sanitizeText(message)
-	}
+func renderTwitchMessage(message string, emotes []*twitch.Emote, thirdPartyEmotes map[string]thirdPartyEmote) string {
 	type repl struct {
 		start, end int
-		id         string
+		url, alt   string
 	}
 	var replacements []repl
 	for _, emote := range emotes {
 		for _, pos := range emote.Positions {
-			replacements = append(replacements, repl{start: pos.Start, end: pos.End, id: emote.ID})
+			replacements = append(replacements, repl{
+				start: pos.Start,
+				end:   pos.End,
+				url:   "https://static-cdn.jtvnw.net/emoticons/v2/" + emote.ID + "/default/dark/3.0",
+				alt:   "emote",
+			})
 		}
 	}
+	sort.Slice(replacements, func(i, j int) bool {
+		return replacements[i].start < replacements[j].start
+	})
 	var out bytes.Buffer
 	last := 0
 	for _, r := range replacements {
-		if r.start > last {
-			out.WriteString(sanitizeText(message[last:r.start]))
+		if r.start < last || r.start < 0 || r.end >= len(message) || r.end < r.start {
+			continue
 		}
-		out.WriteString(`<img src="https://static-cdn.jtvnw.net/emoticons/v2/` + r.id + `/default/dark/3.0" class="emote" alt="emote">`)
+		if r.start > last {
+			out.WriteString(renderThirdPartyEmotes(message[last:r.start], thirdPartyEmotes))
+		}
+		out.WriteString(renderEmoteImage(r.url, r.alt))
 		last = r.end + 1
 	}
 	if last < len(message) {
-		out.WriteString(sanitizeText(message[last:]))
+		out.WriteString(renderThirdPartyEmotes(message[last:], thirdPartyEmotes))
 	}
 	return out.String()
+}
+
+func renderThirdPartyEmotes(text string, emotes map[string]thirdPartyEmote) string {
+	if len(emotes) == 0 || text == "" {
+		return sanitizeText(text)
+	}
+	var out bytes.Buffer
+	for len(text) > 0 {
+		r, size := firstRune(text)
+		if unicode.IsSpace(r) {
+			out.WriteString(sanitizeText(text[:size]))
+			text = text[size:]
+			continue
+		}
+		tokenEnd := size
+		for tokenEnd < len(text) {
+			r, size = firstRune(text[tokenEnd:])
+			if unicode.IsSpace(r) {
+				break
+			}
+			tokenEnd += size
+		}
+		token := text[:tokenEnd]
+		if emote, ok := emotes[token]; ok {
+			out.WriteString(renderEmoteImage(emote.URL, emote.Code))
+		} else {
+			out.WriteString(sanitizeText(token))
+		}
+		text = text[tokenEnd:]
+	}
+	return out.String()
+}
+
+func firstRune(text string) (rune, int) {
+	return utf8.DecodeRuneInString(text)
+}
+
+func renderEmoteImage(url, alt string) string {
+	return `<img src="` + html.EscapeString(url) + `" class="emote" alt="` + html.EscapeString(alt) + `">`
 }
 
 type TwitchEventSubAdapter struct {

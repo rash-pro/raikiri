@@ -68,7 +68,7 @@ func (t *TTSEngine) enqueue(ctx context.Context, text, voice string, cfg AppConf
 	if !cfg.TTSEnabled {
 		return
 	}
-	text = strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(text, "<", ""), ">", ""))
+	text = normalizeTTSText(text, 150)
 	if ttsContainsBlockedWord(text, cfg.TTSBlockedWords) {
 		t.logger.Info("tts skipped because text matched blocked word list")
 		return
@@ -77,14 +77,17 @@ func (t *TTSEngine) enqueue(ctx context.Context, text, voice string, cfg AppConf
 		t.logger.Info("tts skipped because text looks repetitive")
 		return
 	}
-	if len(text) > 150 {
-		text = text[:150]
-	}
 	if text == "" {
 		return
 	}
+	segments := splitTTSVoiceSegments(text, voice)
+	if len(segments) == 0 {
+		return
+	}
 	t.mu.Lock()
-	t.queue = append(t.queue, ttsJob{text: text, voice: voice, cfg: cfg})
+	for _, segment := range segments {
+		t.queue = append(t.queue, ttsJob{text: segment.Text, voice: segment.Voice, cfg: cfg})
+	}
 	if !t.busy {
 		t.busy = true
 		go t.run()
@@ -141,8 +144,21 @@ func synthesizeEdge(ctx context.Context, text, voice string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func normalizeTTSText(text string, maxRunes int) string {
+	text = strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(text, "<", ""), ">", ""))
+	if maxRunes <= 0 {
+		return text
+	}
+	runes := []rune(text)
+	if len(runes) <= maxRunes {
+		return text
+	}
+	return string(runes[:maxRunes])
+}
+
 func ttsContainsBlockedWord(text, blockedWords string) bool {
-	normalizedText := " " + normalizeTTSFilterText(text) + " "
+	normalizedText := normalizeTTSFilterText(text)
+	paddedText := " " + normalizedText + " "
 	for _, blocked := range strings.FieldsFunc(blockedWords, func(r rune) bool {
 		return r == '\n' || r == ',' || r == ';'
 	}) {
@@ -150,7 +166,10 @@ func ttsContainsBlockedWord(text, blockedWords string) bool {
 		if normalizedBlocked == "" {
 			continue
 		}
-		if strings.Contains(normalizedText, " "+normalizedBlocked+" ") {
+		if containsCJK(normalizedBlocked) && strings.Contains(normalizedText, normalizedBlocked) {
+			return true
+		}
+		if strings.Contains(paddedText, " "+normalizedBlocked+" ") {
 			return true
 		}
 	}
@@ -191,6 +210,19 @@ func normalizeSpanishRune(r rune) rune {
 	default:
 		return r
 	}
+}
+
+func containsCJK(value string) bool {
+	for _, r := range value {
+		if isCJKRune(r) {
+			return true
+		}
+	}
+	return false
+}
+
+func isCJKRune(r rune) bool {
+	return unicode.In(r, unicode.Han, unicode.Hiragana, unicode.Katakana, unicode.Hangul)
 }
 
 func ttsLooksRepetitive(text string) bool {

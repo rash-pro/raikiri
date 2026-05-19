@@ -1,6 +1,7 @@
 package app
 
 import (
+	"strings"
 	"testing"
 
 	twitch "github.com/gempir/go-twitch-irc/v4"
@@ -83,6 +84,38 @@ func TestTwitchMessageBadgesDeduplicatesRoles(t *testing.T) {
 	}
 	if count != 1 {
 		t.Fatalf("expected one moderator badge, got %d in %#v", count, badges)
+	}
+}
+
+func TestRenderTwitchMessageIncludesThirdPartyEmotes(t *testing.T) {
+	html := renderTwitchMessage("hola KEKW mundo", nil, map[string]thirdPartyEmote{
+		"KEKW": {Code: "KEKW", URL: "https://cdn.example.test/kekw.webp", Provider: "bttv"},
+	})
+
+	if !strings.Contains(html, `<img src="https://cdn.example.test/kekw.webp" class="emote" alt="KEKW">`) {
+		t.Fatalf("expected third-party emote image, got %s", html)
+	}
+	if strings.Contains(html, "hola KEKW mundo") {
+		t.Fatalf("expected emote token to be replaced, got %s", html)
+	}
+}
+
+func TestRenderTwitchMessageKeepsTwitchEmotePositions(t *testing.T) {
+	html := renderTwitchMessage("Kappa KEKW", []*twitch.Emote{{
+		ID: "25",
+		Positions: []twitch.EmotePosition{{
+			Start: 0,
+			End:   4,
+		}},
+	}}, map[string]thirdPartyEmote{
+		"KEKW": {Code: "KEKW", URL: "https://cdn.example.test/kekw.webp", Provider: "ffz"},
+	})
+
+	if !strings.Contains(html, `https://static-cdn.jtvnw.net/emoticons/v2/25/default/dark/3.0`) {
+		t.Fatalf("expected native Twitch emote image, got %s", html)
+	}
+	if !strings.Contains(html, `https://cdn.example.test/kekw.webp`) {
+		t.Fatalf("expected third-party emote image, got %s", html)
 	}
 }
 
