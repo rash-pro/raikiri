@@ -361,7 +361,7 @@ func (a *App) routeChat(msg ChatMessage) {
 	if !cfg.TTSCmdEnabled {
 		return
 	}
-	text, ok := ttsCommandText(msg.Content, cfg.TTSCmdPrefix)
+	text, ok := ttsCommandMessageText(msg, cfg)
 	if !ok {
 		return
 	}
@@ -371,6 +371,13 @@ func (a *App) routeChat(msg ChatMessage) {
 	if text != "" {
 		a.tts.Enqueue(context.Background(), msg.DisplayName+" dice: "+text, cfg)
 	}
+}
+
+func ttsCommandMessageText(msg ChatMessage, cfg AppConfig) (string, bool) {
+	if strings.TrimSpace(msg.CustomRewardID) != "" {
+		return "", false
+	}
+	return ttsCommandText(msg.Content, cfg.TTSCmdPrefix)
 }
 
 func ttsCommandText(content, prefix string) (string, bool) {
@@ -438,6 +445,12 @@ func ttsRewardText(evt Event, cfg AppConfig) (string, bool) {
 		return "", false
 	}
 	message := strings.TrimSpace(evt.Message)
+	if message == "" {
+		return "", false
+	}
+	if text, ok := ttsCommandText(message, cfg.TTSCmdPrefix); ok {
+		message = text
+	}
 	if message == "" {
 		return "", false
 	}

@@ -153,6 +153,7 @@ func (a *TwitchChatAdapter) Start(ctx context.Context) {
 		a.emit(ChatMessage{
 			ID: message.ID, Platform: PlatformTwitch, User: message.User.Name, DisplayName: message.User.DisplayName,
 			Content: sanitizeText(message.Message), HTMLContent: html, Color: message.User.Color, Badges: badges, Timestamp: message.Time,
+			CustomRewardID: message.CustomRewardID,
 		})
 	})
 	go func() {

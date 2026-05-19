@@ -51,3 +51,23 @@ func TestTTSRewardTextRequiresUserInput(t *testing.T) {
 		t.Fatalf("unexpected reward TTS text %q", text)
 	}
 }
+
+func TestTTSRewardTextStripsCommandPrefixFromRewardInput(t *testing.T) {
+	cfg := DefaultConfig()
+	cfg.TTSRewardEnabled = true
+	cfg.TTSRewardName = "Leer mensaje"
+	evt := Event{
+		Type:       PlatformEventChannelPoints,
+		User:       "Viewer",
+		Message:    "!voz hola desde puntos",
+		RewardName: "Leer mensaje",
+	}
+
+	text, ok := ttsRewardText(evt, cfg)
+	if !ok {
+		t.Fatal("expected channel points reward to trigger TTS")
+	}
+	if text != "Viewer dice: hola desde puntos" {
+		t.Fatalf("unexpected reward TTS text %q", text)
+	}
+}

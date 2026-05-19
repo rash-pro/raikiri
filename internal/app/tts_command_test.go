@@ -34,6 +34,28 @@ func TestTTSCommandTextRejectsPrefixOnlyMatch(t *testing.T) {
 	}
 }
 
+func TestTTSCommandMessageTextRejectsChannelPointRedemptionMessages(t *testing.T) {
+	cfg := DefaultConfig()
+	msg := ChatMessage{Content: "!voz hola desde puntos", CustomRewardID: "reward-123"}
+
+	if text, ok := ttsCommandMessageText(msg, cfg); ok {
+		t.Fatalf("channel point redemption chat message should not trigger command TTS, got %q", text)
+	}
+}
+
+func TestTTSCommandMessageTextAllowsNormalCommandMessages(t *testing.T) {
+	cfg := DefaultConfig()
+	msg := ChatMessage{Content: "!voz hola normal"}
+
+	text, ok := ttsCommandMessageText(msg, cfg)
+	if !ok {
+		t.Fatal("expected normal command chat message to trigger")
+	}
+	if text != "hola normal" {
+		t.Fatalf("unexpected command text %q", text)
+	}
+}
+
 func TestTTSCommandAllowedMatchesConfiguredBadges(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.TTSCmdHost = false

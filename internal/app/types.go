@@ -18,21 +18,22 @@ type Badge struct {
 }
 
 type ChatMessage struct {
-	ID          string    `json:"id"`
-	Platform    Platform  `json:"platform"`
-	User        string    `json:"user"`
-	DisplayName string    `json:"displayName"`
-	Content     string    `json:"content"`
-	HTMLContent string    `json:"htmlContent"`
-	Kind        string    `json:"kind,omitempty"`
-	AmountText  string    `json:"amountText,omitempty"`
-	StickerURL  string    `json:"stickerUrl,omitempty"`
-	HeaderColor string    `json:"headerColor,omitempty"`
-	BodyColor   string    `json:"bodyColor,omitempty"`
-	Color       string    `json:"color,omitempty"`
-	Badges      []Badge   `json:"badges"`
-	Timestamp   time.Time `json:"timestamp"`
-	AnimationID string    `json:"animationId,omitempty"`
+	ID             string    `json:"id"`
+	Platform       Platform  `json:"platform"`
+	User           string    `json:"user"`
+	DisplayName    string    `json:"displayName"`
+	Content        string    `json:"content"`
+	HTMLContent    string    `json:"htmlContent"`
+	Kind           string    `json:"kind,omitempty"`
+	AmountText     string    `json:"amountText,omitempty"`
+	StickerURL     string    `json:"stickerUrl,omitempty"`
+	HeaderColor    string    `json:"headerColor,omitempty"`
+	BodyColor      string    `json:"bodyColor,omitempty"`
+	Color          string    `json:"color,omitempty"`
+	Badges         []Badge   `json:"badges"`
+	Timestamp      time.Time `json:"timestamp"`
+	AnimationID    string    `json:"animationId,omitempty"`
+	CustomRewardID string    `json:"customRewardId,omitempty"`
 }
 
 type Event struct {
