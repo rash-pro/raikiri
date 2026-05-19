@@ -142,15 +142,7 @@ func (a *TwitchChatAdapter) Start(ctx context.Context) {
 	}
 	a.client.Join(a.cfg.TwitchChannel)
 	a.client.OnPrivateMessage(func(message twitch.PrivateMessage) {
-		badges := []Badge{}
-		for name := range message.User.Badges {
-			switch name {
-			case "broadcaster":
-				badges = append(badges, Badge{Type: "owner"})
-			case "moderator", "vip", "subscriber":
-				badges = append(badges, Badge{Type: name})
-			}
-		}
+		badges := twitchMessageBadges(message)
 		html := renderTwitchMessage(message.Message, message.Emotes)
 		a.emit(ChatMessage{
 			ID: message.ID, Platform: PlatformTwitch, User: message.User.Name, DisplayName: message.User.DisplayName,
@@ -170,6 +162,39 @@ func (a *TwitchChatAdapter) Stop() {
 	if a.client != nil {
 		a.client.Disconnect()
 	}
+}
+
+func twitchMessageBadges(message twitch.PrivateMessage) []Badge {
+	seen := map[string]bool{}
+	var badges []Badge
+	add := func(kind string) {
+		if seen[kind] {
+			return
+		}
+		seen[kind] = true
+		badges = append(badges, Badge{Type: kind})
+	}
+
+	for name := range message.User.Badges {
+		switch name {
+		case "broadcaster":
+			add("owner")
+		case "moderator", "vip", "subscriber":
+			add(name)
+		}
+	}
+
+	if message.Tags["user-type"] == "mod" || message.Tags["mod"] == "1" {
+		add("moderator")
+	}
+	if message.Tags["subscriber"] == "1" {
+		add("subscriber")
+	}
+	if strings.EqualFold(message.User.Name, message.Channel) && message.User.Name != "" {
+		add("owner")
+	}
+
+	return badges
 }
 
 func renderTwitchMessage(message string, emotes []*twitch.Emote) string {
