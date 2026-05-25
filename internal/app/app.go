@@ -98,6 +98,7 @@ func (a *App) routes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/config", a.handleConfig)
 	mux.HandleFunc("/api/config/form", a.handleConfigForm)
 	mux.HandleFunc("/api/auth/twitch/device-code", a.handleTwitchDeviceCode)
+	mux.HandleFunc("/api/auth/twitch/status", a.handleTwitchStatus)
 	mux.HandleFunc("/api/alerts/test", a.handleAlertTest)
 	mux.HandleFunc("/api/tts/test", a.handleTTSTest)
 	mux.HandleFunc("/api/chat/test", a.handleChatTest)
@@ -335,6 +336,9 @@ func (a *App) handleTwitchDeviceCode(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
+	// Clear the old token when starting new authentication flow to prevent stale status
+	_ = a.store.SaveToken(r.Context(), "twitch", TokenData{})
+	
 	go func() {
 		token, err := auth.PollForToken(context.Background(), code.DeviceCode, code.Interval)
 		if err != nil {
@@ -353,6 +357,18 @@ func (a *App) handleTwitchDeviceCode(w http.ResponseWriter, r *http.Request) {
 		a.restartAdapters(context.Background())
 	}()
 	writeJSON(w, code)
+}
+
+func (a *App) handleTwitchStatus(w http.ResponseWriter, r *http.Request) {
+	token, err := a.store.Token(r.Context(), "twitch")
+	if err != nil || token.AccessToken == "" {
+		writeJSON(w, map[string]any{"authenticated": false})
+		return
+	}
+	writeJSON(w, map[string]any{
+		"authenticated": true,
+		"username":      a.config().TwitchChannel,
+	})
 }
 
 func (a *App) routeChat(msg ChatMessage) {

@@ -125,6 +125,63 @@ func (t *TwitchAuth) AuthenticatedUserName(ctx context.Context, accessToken stri
 	return payload.Data[0].Login, nil
 }
 
+func (t *TwitchAuth) RefreshToken(ctx context.Context, refreshToken string) (TokenData, error) {
+	form := "client_id=" + t.clientID + "&grant_type=refresh_token&refresh_token=" + refreshToken
+	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, "https://id.twitch.tv/oauth2/token", strings.NewReader(form))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return TokenData{}, err
+	}
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+	if res.StatusCode/100 != 2 {
+		return TokenData{}, fmt.Errorf("twitch token refresh failed: %s", body)
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return TokenData{}, err
+	}
+	expiresIn, _ := payload["expires_in"].(float64)
+	
+	refreshTokenOut := fmt.Sprint(payload["refresh_token"])
+	if refreshTokenOut == "" || refreshTokenOut == "<nil>" {
+		refreshTokenOut = refreshToken
+	}
+	
+	token := TokenData{
+		AccessToken:  fmt.Sprint(payload["access_token"]),
+		RefreshToken: refreshTokenOut,
+		ExpiresAt:    time.Now().Add(time.Duration(expiresIn) * time.Second).UnixMilli(),
+	}
+	return token, t.store.SaveToken(ctx, "twitch", token)
+}
+
+func GetOrRefreshTwitchToken(ctx context.Context, store *Store, clientID string, logger *slog.Logger) (TokenData, error) {
+	token, err := store.Token(ctx, "twitch")
+	if err != nil {
+		return TokenData{}, err
+	}
+	if token.AccessToken == "" {
+		return TokenData{}, fmt.Errorf("no twitch token found")
+	}
+
+	// Check if token has expired or is about to expire (within 5 minutes)
+	if token.RefreshToken != "" && (token.ExpiresAt == 0 || time.Now().UnixMilli() > (token.ExpiresAt-5*60*1000)) {
+		logger.Info("twitch token expired or expiring soon, refreshing")
+		auth := NewTwitchAuth(store, clientID, logger)
+		newToken, err := auth.RefreshToken(ctx, token.RefreshToken)
+		if err != nil {
+			logger.Error("failed to refresh twitch token", "error", err)
+			return token, err // return old one as fallback
+		}
+		logger.Info("twitch token refreshed successfully")
+		return newToken, nil
+	}
+
+	return token, nil
+}
+
 type TwitchChatAdapter struct {
 	cfg          AppConfig
 	store        *Store
@@ -139,7 +196,7 @@ func NewTwitchChatAdapter(cfg AppConfig, store *Store, logger *slog.Logger, emit
 }
 
 func (a *TwitchChatAdapter) Start(ctx context.Context) {
-	token, _ := a.store.Token(ctx, "twitch")
+	token, _ := GetOrRefreshTwitchToken(ctx, a.store, a.cfg.TwitchClientID, a.logger)
 	if token.AccessToken != "" {
 		a.client = twitch.NewClient(a.cfg.TwitchChannel, "oauth:"+token.AccessToken)
 	} else {
@@ -359,7 +416,7 @@ func (a *TwitchEventSubAdapter) run(ctx context.Context) error {
 }
 
 func (a *TwitchEventSubAdapter) subscribeAll(ctx context.Context, sessionID string) {
-	token, err := a.store.Token(ctx, "twitch")
+	token, err := GetOrRefreshTwitchToken(ctx, a.store, a.cfg.TwitchClientID, a.logger)
 	if err != nil || token.AccessToken == "" {
 		return
 	}

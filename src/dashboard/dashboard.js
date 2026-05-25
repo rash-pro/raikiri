@@ -244,6 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Twitch Device Auth Flow
+    let twitchPollInterval = null;
     document.getElementById('authTwitchBtn').addEventListener('click', async () => {
         const clientId = document.getElementById('config-twitchClientId').value;
         if (!clientId) {
@@ -254,6 +255,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('authTwitchBtn');
         btn.innerText = "Requesting...";
         btn.disabled = true;
+
+        if (twitchPollInterval) {
+            clearInterval(twitchPollInterval);
+            twitchPollInterval = null;
+        }
 
         try {
             const res = await fetch('/api/auth/twitch/device-code', { method: 'POST' });
@@ -268,11 +274,42 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('twitchAuthDisplay').style.display = 'block';
             
             btn.innerText = "Waiting for authorization...";
-            
-            // In a real app we might get a WebSocket event when it finishes,
-            // but for simplicity we rely on the backend to tell us, or we just notify
-            // actually since we didn't hook up a WS for status, we'll just say:
             showToast("Follow the link and enter the code. The system will auto-connect.", 6000);
+            
+            let elapsed = 0;
+            const maxDuration = data.expiresIn || 300;
+            twitchPollInterval = setInterval(async () => {
+                elapsed += 3;
+                if (elapsed >= maxDuration) {
+                    clearInterval(twitchPollInterval);
+                    twitchPollInterval = null;
+                    btn.innerText = "Authenticate Device";
+                    btn.disabled = false;
+                    document.getElementById('twitchAuthDisplay').style.display = 'none';
+                    showToast("Authentication timed out. Please try again.", 5000);
+                    return;
+                }
+                
+                try {
+                    const statusRes = await fetch('/api/auth/twitch/status');
+                    const statusData = await statusRes.json();
+                    if (statusData.authenticated && statusData.username) {
+                        clearInterval(twitchPollInterval);
+                        twitchPollInterval = null;
+                        
+                        document.getElementById('config-twitchChannel').value = statusData.username;
+                        document.getElementById('twitchAuthDisplay').style.display = 'none';
+                        
+                        btn.innerText = "Authenticate Device";
+                        btn.disabled = false;
+                        
+                        showToast("Twitch authentication successful!", 5000);
+                        await loadConfig();
+                    }
+                } catch (pollErr) {
+                    console.error("Error polling Twitch status:", pollErr);
+                }
+            }, 3000);
             
         } catch (err) {
             alert(err.message);
