@@ -338,7 +338,7 @@ func (a *App) handleTwitchDeviceCode(w http.ResponseWriter, r *http.Request) {
 	}
 	// Clear the old token when starting new authentication flow to prevent stale status
 	_ = a.store.SaveToken(r.Context(), "twitch", TokenData{})
-	
+
 	go func() {
 		token, err := auth.PollForToken(context.Background(), code.DeviceCode, code.Interval)
 		if err != nil {
@@ -445,12 +445,20 @@ func (a *App) routeEvent(evt Event) {
 	a.publishWidgetState(context.Background())
 	a.publishCustomWidgetEvent(evt)
 	cfg := a.config()
-	if evt.Type == "superchat" || evt.Type == "supersticker" || evt.Type == "membership" || evt.Type == "subscription" || evt.Type == "bits" || evt.Type == "gift" {
+	if alertEventTriggersTTS(evt, cfg) {
 		a.tts.EnqueueEvent(context.Background(), evt, cfg)
 	}
 	if text, ok := ttsRewardText(evt, cfg); ok {
 		a.tts.Enqueue(context.Background(), text, cfg)
 	}
+}
+
+func alertEventTriggersTTS(evt Event, cfg AppConfig) bool {
+	if evt.Type == PlatformEventChannelPoints {
+		return false
+	}
+	_, ok := cfg.AlertsConfig[evt.Type]
+	return ok
 }
 
 func ttsRewardText(evt Event, cfg AppConfig) (string, bool) {

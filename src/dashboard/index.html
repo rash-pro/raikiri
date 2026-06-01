@@ -66,7 +66,7 @@
                                 <input type="text" id="config-twitchChannel" placeholder="yourchannel">
                             </div>
                             <div class="button-group">
-                                <button class="btn btn-twitch" id="authTwitchBtn">Authenticate Device</button>
+                                <button class="btn btn-twitch" id="authTwitchBtn" type="button">Authenticate Device</button>
                             </div>
                             <div id="twitchAuthDisplay" style="display:none; margin-top: 15px;">
                                 <p>Go to <a href="#" id="twitchVerifyUri" target="_blank" style="color:var(--twitch-color);"><b>twitch.tv/activate</b></a> and enter the code:</p>
@@ -123,7 +123,7 @@
                         <div class="card-header">
                             <h3>Cloud TTS Settings</h3>
                             <div style="display: flex; gap: 15px; align-items: center;">
-                                <button class="btn btn-secondary" id="testTtsBtn" style="padding: 5px 15px;">Test Voice</button>
+                                <button class="btn btn-secondary" id="testTtsBtn" type="button" style="padding: 5px 15px;">Test Voice</button>
                                 <div class="toggle-switch">
                                     <input type="checkbox" id="config-ttsEnabled">
                                     <label for="config-ttsEnabled"></label>
@@ -268,8 +268,8 @@
                                     <span class="url">http://localhost:30001/overlay/chat/</span>
                                 </div>
                                 <div style="display:flex; gap:10px;">
-                                    <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/chat/')">Copy</button>
-                                    <button class="btn btn-secondary" id="testChatBtn" style="border-color:var(--primary);">Test Chat</button>
+                                    <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/chat/')">Copy</button>
+                                    <button class="btn btn-secondary" id="testChatBtn" type="button" style="border-color:var(--primary);">Test Chat</button>
                                 </div>
                             </div>
                             
@@ -278,7 +278,7 @@
                                     <h4>Alerts Overlay</h4>
                                     <span class="url">http://localhost:30001/overlay/alerts/</span>
                                 </div>
-                                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/alerts/')">Copy</button>
+                                <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/alerts/')">Copy</button>
                             </div>
                             
                             <div class="url-copy-box">
@@ -286,7 +286,7 @@
                                     <h4>Audio Output (OBS Browser Source)</h4>
                                     <span class="url">http://localhost:30001/audio/</span>
                                 </div>
-                                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('http://localhost:30001/audio/')">Copy</button>
+                                <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/audio/')">Copy</button>
                             </div>
                         </div>
                     </div>
@@ -313,7 +313,7 @@
                                     </select>
                                 </div>
                                 <div class="form-group" style="display:flex; align-items:flex-end;">
-                                    <button class="btn btn-primary" onclick="testCurrentAlert()">Test Selected Alert</button>
+                                    <button class="btn btn-primary" type="button" onclick="testCurrentAlert()">Test Selected Alert</button>
                                 </div>
                             </div>
 
