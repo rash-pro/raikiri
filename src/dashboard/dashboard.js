@@ -31,6 +31,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let currentConfig = {};
+    let prevAlert = null;
+
+    async function loadRuntime() {
+        try {
+            const res = await fetch('/api/runtime');
+            const data = await res.json();
+            const versionEl = document.getElementById('runtime-version');
+            if (versionEl) versionEl.innerText = data.version || 'dev';
+        } catch (err) {
+            console.error('Failed to load runtime:', err);
+        }
+    }
+    loadRuntime();
 
     document.querySelectorAll('[id^="config-"]').forEach(el => {
         if (!el.name) el.name = el.id.replace('config-', '');
@@ -75,6 +88,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return payload;
     }
 
+    function readCurrentAlertConfig() {
+        return {
+            enabled: document.getElementById('config-alertEnabled').checked,
+            theme: document.getElementById('config-alertTheme').value,
+            voice: document.getElementById('config-alertVoice').value,
+            audioUrl: document.getElementById('config-alertAudioUrl').value,
+            gifUrl: document.getElementById('config-alertGifUrl').value,
+            messageTemplate: document.getElementById('config-alertMessageTemplate').value,
+        };
+    }
+
+    function commitCurrentAlertConfig() {
+        const type = document.getElementById('config-alertType')?.value;
+        if (!type) return;
+        if (!currentConfig.alertsConfig) currentConfig.alertsConfig = {};
+        currentConfig.alertsConfig[type] = readCurrentAlertConfig();
+    }
+
     // Load Config
     async function loadConfig() {
         try {
@@ -100,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             // Initialize alerts UI mapping
+            prevAlert = null;
             if (window.loadAlertConfigUI) window.loadAlertConfigUI();
             loadWidgetsConfigUI();
             
@@ -115,6 +147,15 @@ document.addEventListener('DOMContentLoaded', () => {
         volSlider.addEventListener('input', (e) => {
             document.getElementById('volumeVal').innerText = `${e.target.value}%`;
         });
+    }
+
+    const configForm = document.getElementById('config-form');
+    if (configForm) {
+        configForm.addEventListener('submit', (event) => {
+            if (event.submitter && event.submitter.id === 'saveBtn') return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }, true);
     }
 
     document.body.addEventListener('htmx:configRequest', (event) => {
@@ -164,6 +205,26 @@ document.addEventListener('DOMContentLoaded', () => {
              } catch (err) {
                  alert('Error triggering chat');
              }
+        });
+    }
+
+    const testAlertBtn = document.getElementById('testAlertBtn');
+    if (testAlertBtn) {
+        testAlertBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            await window.testCurrentAlert();
+        });
+    }
+
+    const saveAlertBtn = document.getElementById('saveAlertBtn');
+    if (saveAlertBtn) {
+        saveAlertBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            commitCurrentAlertConfig();
+            const saveBtn = document.getElementById('saveBtn');
+            document.getElementById('config-form')?.requestSubmit(saveBtn);
         });
     }
 
@@ -615,20 +676,12 @@ window.addEventListener('raikiri:event', event => {
     }
     
     // Global scopes for inline HTML handlers
-    let prevAlert = 'follow';
     window.loadAlertConfigUI = function() {
         if (!currentConfig || !currentConfig.alertsConfig) return;
         
         // Save previous before switching
         if (prevAlert) {
-            currentConfig.alertsConfig[prevAlert] = {
-                enabled: document.getElementById('config-alertEnabled').checked,
-                theme: document.getElementById('config-alertTheme').value,
-                voice: document.getElementById('config-alertVoice').value,
-                audioUrl: document.getElementById('config-alertAudioUrl').value,
-                gifUrl: document.getElementById('config-alertGifUrl').value,
-                messageTemplate: document.getElementById('config-alertMessageTemplate').value,
-            };
+            currentConfig.alertsConfig[prevAlert] = readCurrentAlertConfig();
         }
         
         const aType = document.getElementById('config-alertType').value;
@@ -643,13 +696,21 @@ window.addEventListener('raikiri:event', event => {
         document.getElementById('config-alertMessageTemplate').value = aConf.messageTemplate || '';
     };
 
-    window.testCurrentAlert = function() {
+    window.testCurrentAlert = async function() {
         const type = document.getElementById('config-alertType').value;
-        fetch('/api/alerts/test', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type })
-        }).then(res => res.json())
-          .catch(console.error);
+        const alertConfig = readCurrentAlertConfig();
+        try {
+            const res = await fetch('/api/alerts/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, alertConfig })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            const audioMessage = data.audioClients > 0 ? 'TTS sent to audio source.' : 'No /audio source connected for TTS.';
+            showToast(`Alert test sent. ${audioMessage}`, 5000);
+        } catch (err) {
+            alert(err.message || 'Error testing alert');
+        }
     };
 });

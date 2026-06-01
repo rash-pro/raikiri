@@ -84,7 +84,7 @@ func Serve(ctx context.Context, opts Options) error {
 		_ = server.Shutdown(shutdownCtx)
 	}()
 
-	opts.Logger.Info("raikiri native server listening", "url", "http://"+server.Addr, "dataDir", opts.DataDir)
+	opts.Logger.Info("raikiri native server listening", "version", opts.Version, "url", "http://"+server.Addr, "dataDir", opts.DataDir)
 	err = server.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		return nil
@@ -230,16 +230,32 @@ func (a *App) handleConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handleAlertTest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
 	var body struct {
-		Type string `json:"type"`
+		Type        string       `json:"type"`
+		AlertConfig *AlertConfig `json:"alertConfig"`
 	}
 	_ = json.NewDecoder(r.Body).Decode(&body)
 	if body.Type == "" {
 		body.Type = "follow"
 	}
 	evt := Event{Type: body.Type, Platform: PlatformTwitch, User: "TestUser", Amount: 100, Count: 5, Tier: 1, Message: "Este es un mensaje de prueba larguito.", GiftName: "Sub Tier 1"}
-	a.routeEvent(evt)
-	writeJSON(w, map[string]any{"success": true, "mocked": evt})
+	cfg := a.config()
+	if body.AlertConfig != nil {
+		if cfg.AlertsConfig == nil {
+			cfg.AlertsConfig = map[string]AlertConfig{}
+		}
+		cfg.AlertsConfig[body.Type] = *body.AlertConfig
+		evt.AlertConfig = body.AlertConfig
+	}
+	a.hub.Publish("alerts", "alert", evt)
+	if alertEventTriggersTTS(evt, cfg) {
+		a.tts.EnqueueEvent(r.Context(), evt, cfg)
+	}
+	writeJSON(w, map[string]any{"success": true, "mocked": evt, "audioClients": a.hub.Count("audio")})
 }
 
 func (a *App) handleTTSTest(w http.ResponseWriter, r *http.Request) {

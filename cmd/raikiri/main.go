@@ -41,6 +41,7 @@ func main() {
 
 	switch cmd {
 	case "serve":
+		logger.Info("starting raikiri", "version", version)
 		if err := app.Serve(ctx, app.Options{Host: *host, Port: *port, DataDir: *dataDir, Version: version, Logger: logger}); err != nil {
 			logger.Error("server stopped", "error", err)
 			os.Exit(1)

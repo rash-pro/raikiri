@@ -37,17 +37,18 @@ type ChatMessage struct {
 }
 
 type Event struct {
-	Type       string   `json:"type"`
-	Platform   Platform `json:"platform"`
-	User       string   `json:"user,omitempty"`
-	Amount     any      `json:"amount,omitempty"`
-	Count      any      `json:"count,omitempty"`
-	Tier       any      `json:"tier,omitempty"`
-	Currency   string   `json:"currency,omitempty"`
-	Message    string   `json:"message,omitempty"`
-	GiftName   string   `json:"giftName,omitempty"`
-	RewardName string   `json:"rewardName,omitempty"`
-	Viewers    any      `json:"viewers,omitempty"`
+	Type        string       `json:"type"`
+	Platform    Platform     `json:"platform"`
+	User        string       `json:"user,omitempty"`
+	Amount      any          `json:"amount,omitempty"`
+	Count       any          `json:"count,omitempty"`
+	Tier        any          `json:"tier,omitempty"`
+	Currency    string       `json:"currency,omitempty"`
+	Message     string       `json:"message,omitempty"`
+	GiftName    string       `json:"giftName,omitempty"`
+	RewardName  string       `json:"rewardName,omitempty"`
+	Viewers     any          `json:"viewers,omitempty"`
+	AlertConfig *AlertConfig `json:"alertConfig,omitempty"`
 }
 
 type AlertConfig struct {

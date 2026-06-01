@@ -3,22 +3,27 @@ go = "1.26.3"
 
 [env]
 CGO_ENABLED = "0"
-VERSION = "v3.2.5"
 
 [tasks.build]
 description = "Build the native Raikiri binary"
-run = "mkdir -p dist && go build -trimpath -ldflags=\"-s -w -X main.version=$VERSION\" -o dist/raikiri ./cmd/raikiri"
+run = """
+RAIKIRI_VERSION="${RAIKIRI_VERSION:-$(git diff --quiet && git describe --tags --exact-match 2>/dev/null || git describe --tags --always --dirty)}"
+mkdir -p dist
+go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/raikiri ./cmd/raikiri
+"""
 
 [tasks.release]
 description = "Build release binaries for Linux, Windows, and macOS"
+depends = ["build"]
 run = """
+RAIKIRI_VERSION="${RAIKIRI_VERSION:-$(git diff --quiet && git describe --tags --exact-match 2>/dev/null || git describe --tags --always --dirty)}"
 rm -rf dist/release
 mkdir -p dist/release
-GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/release/raikiri-linux-amd64 ./cmd/raikiri
-GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/release/raikiri-linux-arm64 ./cmd/raikiri
-GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/release/raikiri-windows-amd64.exe ./cmd/raikiri
-GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/release/raikiri-darwin-arm64 ./cmd/raikiri
-GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/release/raikiri-darwin-amd64 ./cmd/raikiri
+GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-linux-amd64 ./cmd/raikiri
+GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-linux-arm64 ./cmd/raikiri
+GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-windows-amd64.exe ./cmd/raikiri
+GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-darwin-arm64 ./cmd/raikiri
+GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-darwin-amd64 ./cmd/raikiri
 """
 
 [tasks.release-sha256]

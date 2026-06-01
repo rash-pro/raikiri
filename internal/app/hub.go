@@ -72,6 +72,12 @@ func (h *Hub) Publish(channel, event string, payload any) {
 	}
 }
 
+func (h *Hub) Count(channel string) int {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return len(h.clients[channel])
+}
+
 func (h *Hub) add(channel string, conn *websocket.Conn) {
 	h.mu.Lock()
 	defer h.mu.Unlock()

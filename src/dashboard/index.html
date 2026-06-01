@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raikiri v3.1 Admin Dashboard</title>
+    <title>Raikiri Admin Dashboard</title>
     <link rel="stylesheet" href="dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
@@ -13,7 +13,7 @@
         <aside class="sidebar">
             <div class="logo">
                 <div class="logo-icon"></div>
-                <h2>Raikiri <span>v3.1</span></h2>
+                <h2>Raikiri <span id="runtime-version">...</span></h2>
             </div>
             <nav class="nav-menu">
                 <a href="#platforms" class="nav-item active">
@@ -312,8 +312,9 @@
                                         <option value="channel_points">Custom Reward</option>
                                     </select>
                                 </div>
-                                <div class="form-group" style="display:flex; align-items:flex-end;">
-                                    <button class="btn btn-primary" type="button" onclick="testCurrentAlert()">Test Selected Alert</button>
+                                <div class="form-group" style="display:flex; align-items:flex-end; gap:10px;">
+                                    <button class="btn btn-primary" type="button" id="testAlertBtn">Test Selected Alert</button>
+                                    <button class="btn btn-secondary" type="button" id="saveAlertBtn">Save Alert Settings</button>
                                 </div>
                             </div>
 

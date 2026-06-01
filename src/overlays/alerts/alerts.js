@@ -53,7 +53,7 @@ async function processQueue() {
     } catch(e){}
 
     const data = queue.shift();
-    const conf = (appConfig && appConfig.alertsConfig && appConfig.alertsConfig[data.type]) || null;
+    const conf = data.alertConfig || (appConfig && appConfig.alertsConfig && appConfig.alertsConfig[data.type]) || null;
 
     if (conf && conf.enabled === false) {
         isPlaying = false;
