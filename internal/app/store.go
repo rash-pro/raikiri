@@ -38,8 +38,15 @@ func OpenStore(dataDir string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	db.SetConnMaxLifetime(0)
 	store := &Store{db: db}
-	return store, store.migrate(context.Background())
+	if err := store.migrate(context.Background()); err != nil {
+		_ = store.Close()
+		return nil, err
+	}
+	return store, nil
 }
 
 func Migrate(dataDir string) error {
@@ -55,6 +62,7 @@ func (s *Store) Close() error { return s.db.Close() }
 
 func (s *Store) migrate(ctx context.Context) error {
 	queries := []string{
+		`PRAGMA busy_timeout = 5000`,
 		`PRAGMA journal_mode = WAL`,
 		`PRAGMA synchronous = NORMAL`,
 		`CREATE TABLE IF NOT EXISTS config (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
