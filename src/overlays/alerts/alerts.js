@@ -24,6 +24,8 @@ function formatAlertText(data, template) {
     if (template) {
         return template.replace(/{user}/g, data.user || 'Alguien')
                        .replace(/{amount}/g, data.amount || data.count || data.viewers || '')
+                       .replace(/{count}/g, data.count || '')
+                       .replace(/{giftName}/g, data.giftName || 'gift')
                        .replace(/{tier}/g, data.tier || '')
                        .replace(/{message}/g, data.message || '');
     }

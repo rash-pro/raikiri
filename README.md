@@ -8,15 +8,15 @@ This is the native Go rewrite. It ships as a small standalone binary. If you nee
 
 - **Current line:** Raikiri Native, built in Go.
 - **Previous line:** the Bun/Docker implementation remains available at tag `2.1.2`.
-- **Phase 1 native platforms:** Twitch and YouTube Live.
-- **Phase 2 planned platforms:** Kick and TikTok. They are intentionally disabled in the native dashboard until their adapters are implemented.
+- **Native platforms:** Twitch, YouTube Live, and TikTok LIVE.
+- **Planned platform:** Kick remains disabled until its adapter is implemented.
 
 ## What You Get
 
 - Native executable for Linux, Windows, and macOS.
 - Embedded dashboard and OBS overlay assets.
 - Local SQLite config/database under your chosen data directory.
-- Twitch chat, Twitch EventSub alerts, YouTube Live chat via web-first polling.
+- Twitch chat and EventSub alerts, YouTube Live chat via web-first polling, and TikTok LIVE chat/events.
 - Edge TTS cloud voices streamed to `/audio`.
 - Local media support via `/media/*`.
 - OBS browser sources for chat, alerts, widgets, and audio.
@@ -72,7 +72,7 @@ http://localhost:30001/dashboard/
 
 1. Start Raikiri with one of the commands above.
 2. Open `http://localhost:30001/dashboard/`.
-3. Configure Twitch and/or YouTube.
+3. Configure Twitch, YouTube, and/or TikTok.
 4. Click **Save Configuration**.
 5. Add the OBS browser sources listed below.
 
@@ -88,9 +88,19 @@ Set **Channel ID**, **Video ID**, or handle-like live target in the YouTube fiel
 
 The native adapter is web-first: it follows YouTube's public live page and Innertube continuation flow, similar to the previous JavaScript implementation. It does not require a YouTube API key in Phase 1.
 
-### Kick and TikTok
+### TikTok LIVE
 
-Kick and TikTok are not implemented in this native version yet. The dashboard shows them as `Phase 2` and disables their inputs.
+Set the creator's TikTok `@username` and save while that creator is live. Raikiri reads public LIVE chat plus gifts, follows, likes, and shares without requiring a TikTok login. Gift streaks produce one event after the streak finishes, with the final gift count and diamond value.
+
+Likes are delivered live to custom widgets but are intentionally not written to SQLite because busy streams can produce many like batches per second.
+
+Raikiri owns this integration in its internal `tiktoklive` module: room discovery, WebSocket framing, protobuf decoding, reconnection, gift streaks, and normalized events all ship in the Raikiri binary. It does not call an external signing service or require the PirateTok module at runtime or build time. The initial protocol implementation was derived from PirateTok/live-go under its 0BSD license; see `internal/tiktoklive/NOTICE` for attribution.
+
+TikTok does not provide a public official API for reading these LIVE events, so the integration may require updates if TikTok changes its internal Webcast protocol.
+
+### Kick
+
+Kick is not implemented in this native version yet. Its dashboard input remains disabled.
 
 ## OBS Sources
 
@@ -178,10 +188,12 @@ window.addEventListener('raikiri:state', event => {
 
 Event fields available to custom widgets:
 
-- `type`: `bits`, `channel_points`, `superchat`, `supersticker`, `membership`, `subscription`, `gift`, `raid`, `follow`.
-- `platform`: `twitch` or `youtube`.
+- `type`: `bits`, `channel_points`, `superchat`, `supersticker`, `membership`, `subscription`, `gift`, `raid`, `follow`, `like`, or `share`.
+- `platform`: `twitch`, `youtube`, or `tiktok`.
 - `user`: username/display name from the platform.
-- `amount`: bits, donation amount, gift count, or similar value.
+- `amount`: bits, donation amount, TikTok diamond value, or similar value.
+- `count`: gift or like count when the platform supplies one.
+- `giftName`: TikTok gift name when available.
 - `currency`: currency label when available.
 - `message`: chat message, superchat text, or channel points user input.
 - `rewardName`: Twitch Channel Points reward title.
@@ -194,7 +206,7 @@ Activation rules decide which live events trigger a custom widget.
 
 Supported activation fields:
 
-- **Event Type:** `any`, `bits`, `channel_points`, `superchat`, `supersticker`, `membership`, `subscription`, `gift`, `raid`, or `follow`.
+- **Event Type:** `any`, `bits`, `channel_points`, `superchat`, `supersticker`, `membership`, `subscription`, `gift`, `raid`, `follow`, `like`, or `share`.
 - **Minimum Amount:** useful for bits, gifts, and paid support events.
 - **Reward Name:** exact Twitch Channel Points reward title.
 
@@ -296,6 +308,12 @@ Run it:
 ./dist/raikiri serve --host 127.0.0.1 --port 30001 --data-dir ./data
 ```
 
+The TikTok protocol suite uses synthetic Webcast frames by default. To exercise room discovery and a real public stream, run the opt-in integration test with a creator who is currently live:
+
+```bash
+RAIKIRI_TIKTOK_LIVE_USER=creator go test -tags=integration ./internal/tiktoklive -run TestLiveConnectionAndTraffic -v
+```
+
 ## Release Builds
 
 Build all release binaries and checksums:
@@ -317,6 +335,7 @@ Generated files:
 - `raikiri-windows-amd64.exe`
 - `raikiri-darwin-arm64`
 - `raikiri-darwin-amd64`
+- `THIRD_PARTY_NOTICES`
 - `SHA256SUMS`
 
 Linux artifacts can be smoke-tested locally from a Linux machine. Windows and macOS artifacts are cross-compiled and should be tested on their target OS before publishing.
@@ -325,8 +344,8 @@ Linux artifacts can be smoke-tested locally from a Linux machine. Windows and ma
 
 Measured locally on the native Go build:
 
-- Linux amd64 binary: about `11 MB`.
-- Full release set: about `55 MB`.
+- Linux amd64 binary: about `15 MB`.
+- Full release set: about `74 MB`.
 - Idle RSS: about `16 MB`.
 - RSS after dashboard/config/chat/alert activity: about `23 MB`.
 
@@ -338,6 +357,7 @@ For comparison, the previous `2.1.2` Docker-based release used a much larger dis
 - Embedded static dashboard and overlay assets.
 - SQLite via a pure-Go driver.
 - Native WebSocket endpoints under `/ws/*`.
+- TikTok Webcast transport and protocol details are private to `internal/tiktoklive`; the application consumes only Raikiri's normalized event interface.
 - Dashboard config submit uses HTMX.
 - OBS overlays consume native WebSockets, not Socket.IO.
 - TTS is provided through Edge TTS behind a local queue.
@@ -345,8 +365,9 @@ For comparison, the previous `2.1.2` Docker-based release used a much larger dis
 ## Important Notes
 
 - YouTube web polling depends on YouTube's public page and internal continuation payload. If YouTube changes that shape, the adapter may need an update.
+- TikTok LIVE support depends on TikTok's unofficial internal Webcast protocol. It reads public streams only and may need an update when TikTok changes that protocol.
 - Edge TTS is a free, unofficial integration. If it changes upstream, the TTS provider may need an update.
-- Kick and TikTok are intentionally deferred to Phase 2.
+- Kick remains deferred.
 - Keep `--data-dir` somewhere persistent. It contains your config, media, and auth tokens.
 
 ## Previous Version

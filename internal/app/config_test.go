@@ -51,6 +51,7 @@ func TestConfigFormEndpointPersistsPatch(t *testing.T) {
 	form := url.Values{}
 	form.Set("twitchChannel", "rashpro0")
 	form.Set("youtubeChannelId", "abc123")
+	form.Set("tiktokUsername", "@creator")
 	form.Set("ttsEnabled", "false")
 	form.Set("ttsBlockedWords", "uno\ndos")
 	form.Set("chatFontSize", "24")
@@ -68,7 +69,7 @@ func TestConfigFormEndpointPersistsPatch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.TwitchChannel != "rashpro0" || got.YouTubeID != "abc123" || got.TTSEnabled || got.ChatFontSize != 24 || got.TTSBlockedWords != "uno\ndos" {
+	if got.TwitchChannel != "rashpro0" || got.YouTubeID != "abc123" || got.TikTokUsername != "@creator" || got.TTSEnabled || got.ChatFontSize != 24 || got.TTSBlockedWords != "uno\ndos" {
 		t.Fatalf("form config did not persist: %#v", got)
 	}
 }

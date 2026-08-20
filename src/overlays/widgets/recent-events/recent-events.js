@@ -10,8 +10,10 @@ const labels = {
     subscription: 'Subscription',
     bits: 'Bits',
     raid: 'Raid',
-    gift: 'Gifted Subs',
-    follow: 'Follow'
+    gift: 'Gift',
+    follow: 'Follow',
+    like: 'Like',
+    share: 'Share'
 };
 
 const icons = {
@@ -22,7 +24,9 @@ const icons = {
     bits: 'B',
     raid: 'R',
     gift: 'G',
-    follow: '+'
+    follow: '+',
+    like: '♥',
+    share: '↗'
 };
 
 function render(state) {

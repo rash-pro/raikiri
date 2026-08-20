@@ -10,6 +10,7 @@ type Platform string
 const (
 	PlatformTwitch  Platform = "twitch"
 	PlatformYouTube Platform = "youtube"
+	PlatformTikTok  Platform = "tiktok"
 )
 
 type Badge struct {
@@ -186,7 +187,7 @@ func DefaultConfig() AppConfig {
 			"superchat":      {Enabled: true, Theme: "cyberpurple", MessageTemplate: "¡{user} donó {amount} súper chat! {message}"},
 			"supersticker":   {Enabled: true, Theme: "cyberpurple", MessageTemplate: "¡{user} envió un súper sticker de {amount}!"},
 			"membership":     {Enabled: true, Theme: "cyberpurple", MessageTemplate: "¡{user} se hizo miembro! {message}"},
-			"gift":           {Enabled: true, Theme: "cyberpurple", MessageTemplate: "¡{user} ha regalado {amount} suscripciones!"},
+			"gift":           {Enabled: true, Theme: "cyberpurple", MessageTemplate: "¡{user} envió {count} × {giftName}!"},
 			"channel_points": {Enabled: true, Theme: "cyberpurple", MessageTemplate: "{user} dice: {message}"},
 		},
 	}

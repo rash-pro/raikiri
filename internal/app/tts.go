@@ -52,7 +52,7 @@ func (t *TTSEngine) EnqueueEvent(ctx context.Context, evt Event, cfg AppConfig) 
 	}
 	repl := map[string]string{
 		"{user}": fmt.Sprint(evt.User), "{amount}": fmt.Sprint(evt.Amount), "{count}": fmt.Sprint(evt.Count),
-		"{tier}": fmt.Sprint(evt.Tier), "{message}": evt.Message,
+		"{tier}": fmt.Sprint(evt.Tier), "{message}": evt.Message, "{giftName}": evt.GiftName,
 	}
 	for key, val := range repl {
 		text = strings.ReplaceAll(text, key, val)

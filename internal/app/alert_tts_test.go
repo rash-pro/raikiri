@@ -31,6 +31,31 @@ func TestAlertEventTriggersTTSSkipsRewardAndUnknownTypes(t *testing.T) {
 	}
 }
 
+func TestAlertEventEnabledRequiresEnabledConfiguration(t *testing.T) {
+	cfg := DefaultConfig()
+	if !alertEventEnabled(Event{Type: "gift"}, cfg) {
+		t.Fatal("configured gift should publish an alert")
+	}
+	disabled := cfg.AlertsConfig["gift"]
+	disabled.Enabled = false
+	cfg.AlertsConfig["gift"] = disabled
+	if alertEventEnabled(Event{Type: "gift"}, cfg) {
+		t.Fatal("disabled gift should not publish an alert")
+	}
+	if alertEventEnabled(Event{Type: "like"}, cfg) {
+		t.Fatal("unconfigured likes should not flood the alert overlay")
+	}
+}
+
+func TestEventShouldPersistSkipsHighFrequencyLikes(t *testing.T) {
+	if eventShouldPersist(Event{Type: "like"}) {
+		t.Fatal("likes should remain transient")
+	}
+	if !eventShouldPersist(Event{Type: "gift"}) || !eventShouldPersist(Event{Type: "share"}) {
+		t.Fatal("support and social events should persist")
+	}
+}
+
 func TestHandleAlertTestDoesNotPersistEvent(t *testing.T) {
 	store, err := OpenStore(t.TempDir())
 	if err != nil {

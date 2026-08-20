@@ -24,6 +24,7 @@ GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$RAIK
 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-windows-amd64.exe ./cmd/raikiri
 GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-darwin-arm64 ./cmd/raikiri
 GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-darwin-amd64 ./cmd/raikiri
+cp internal/tiktoklive/NOTICE dist/release/THIRD_PARTY_NOTICES
 """
 
 [tasks.release-sha256]

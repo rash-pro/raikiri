@@ -456,17 +456,32 @@ func ttsCommandAllowed(msg ChatMessage, cfg AppConfig) bool {
 }
 
 func (a *App) routeEvent(evt Event) {
-	a.store.SaveEvent(context.Background(), evt)
-	a.hub.Publish("alerts", "alert", evt)
-	a.publishWidgetState(context.Background())
-	a.publishCustomWidgetEvent(evt)
+	if eventShouldPersist(evt) {
+		a.store.SaveEvent(context.Background(), evt)
+		a.publishWidgetState(context.Background())
+	}
 	cfg := a.config()
+	if alertEventEnabled(evt, cfg) {
+		a.hub.Publish("alerts", "alert", evt)
+	}
+	a.publishCustomWidgetEvent(evt)
 	if alertEventTriggersTTS(evt, cfg) {
 		a.tts.EnqueueEvent(context.Background(), evt, cfg)
 	}
 	if text, ok := ttsRewardText(evt, cfg); ok {
 		a.tts.Enqueue(context.Background(), text, cfg)
 	}
+}
+
+func eventShouldPersist(evt Event) bool {
+	// TikTok can emit many like batches per second. They remain available to
+	// live custom widgets without growing SQLite or refreshing every widget.
+	return evt.Type != "like"
+}
+
+func alertEventEnabled(evt Event, cfg AppConfig) bool {
+	alert, ok := cfg.AlertsConfig[evt.Type]
+	return ok && alert.Enabled
 }
 
 func alertEventTriggersTTS(evt Event, cfg AppConfig) bool {

@@ -26,6 +26,9 @@ func (a *App) restartAdapters(ctx context.Context) {
 	if cfg.YouTubeID != "" {
 		adapters = append(adapters, NewYouTubeWebAdapter(cfg.YouTubeID, a.logger, a.routeChat, a.routeEvent))
 	}
+	if cfg.TikTokUsername != "" {
+		adapters = append(adapters, NewTikTokAdapter(cfg.TikTokUsername, a.logger, a.routeChat, a.routeEvent))
+	}
 	a.mu.Lock()
 	a.adapters = adapters
 	a.mu.Unlock()

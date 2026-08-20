@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveConfig() {
         const payload = {};
         
-        ['twitchClientId', 'twitchChannel', 'youtubeChannelId',
+        ['twitchClientId', 'twitchChannel', 'youtubeChannelId', 'tiktokUsername',
          'ttsEnabled', 'ttsVoice', 'ttsMinBits', 'audioMode', 'ttsSubTier', 'audioVolume',
          'ttsRewardEnabled', 'ttsRewardName', 'ttsCmdEnabled', 'ttsCmdPrefix', 'ttsBlockedWords',
          'ttsCmdMod', 'ttsCmdSub', 'ttsCmdVip', 'ttsCmdHost',
