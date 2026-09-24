@@ -2,6 +2,13 @@ import { connectEvents } from "/shared/ws-client.js";
 
 const container = document.getElementById('alert-container');
 
+// ?theme=outrun fuerza un tema para todas las alertas de esta fuente de OBS
+const urlTheme = (new URLSearchParams(location.search).get('theme') || '').replace(/[^a-z0-9-]/gi, '');
+const TYPE_LABELS = {
+    follow: 'NEW FOLLOWER', subscription: 'NEW SUB', bits: 'BITS', raid: 'RAID', superchat: 'SUPER CHAT',
+    supersticker: 'SUPER STICKER', membership: 'NEW MEMBER', gift: 'GIFT', channel_points: 'REDEEM',
+};
+
 let isPlaying = false;
 const queue = [];
 let appConfig = null;
@@ -75,13 +82,17 @@ async function processQueue() {
     }
     
     alertEl.innerHTML = `
+        <div class="alert-fx" aria-hidden="true"></div>
+        <div class="alert-label"></div>
         ${mediaHtml}
         <div class="alert-title">${titleMsg}</div>
         ${(!conf?.messageTemplate && data.message) ? `<div class="alert-message">${data.message}</div>` : ''}
     `;
     
+    alertEl.querySelector('.alert-label').textContent = TYPE_LABELS[data.type] || String(data.type || '').toUpperCase();
+
     // Inject custom structural theme
-    const themeStr = (conf && conf.theme) ? conf.theme : (appConfig?.chatTheme || 'cyberpurple');
+    const themeStr = urlTheme || ((conf && conf.theme) ? conf.theme : (appConfig?.chatTheme || 'cyberpurple'));
     const wrapperEl = document.createElement('div');
     wrapperEl.className = `theme-${themeStr}`;
     wrapperEl.style.width = "100%";

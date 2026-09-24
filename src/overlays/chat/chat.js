@@ -8,6 +8,9 @@ const urlParams = new URLSearchParams(window.location.search);
 const maxMessages = parseInt(urlParams.get('maxMessages')) || 50;
 const allowedPlatformsCtx = urlParams.get('platforms');
 const allowedPlatforms = allowedPlatformsCtx ? allowedPlatformsCtx.split(',') : ['twitch', 'youtube', 'kick', 'tiktok'];
+// ?theme=skyline fuerza un tema en esta fuente de OBS sin cambiar la config global
+const urlTheme = (urlParams.get('theme') || '').replace(/[^a-z0-9-]/gi, '');
+const activeTheme = () => urlTheme || currentConfig.chatTheme;
 
 const platformColors = {
     twitch: '#9146FF',
@@ -37,7 +40,7 @@ function applyConfig(config) {
     document.documentElement.style.setProperty('--chat-font-size', `${currentConfig.chatFontSize}px`);
     
     // Apply Theme
-    document.body.className = `theme-${currentConfig.chatTheme}`;
+    document.body.className = `theme-${activeTheme()}`;
 }
 
 // Initial fetch
@@ -66,12 +69,14 @@ function createMessageElement(msg) {
     }
     el.className = baseClass;
     el.dataset.id = msg.id;
+    el.style.setProperty('--rnd', Math.random().toFixed(3));
     
     if (currentConfig.chatAnimations) {
         setTimeout(() => el.classList.remove('slide-in'), 300);
     }
 
     const color = msg.color || platformColors[msg.platform] || '#ffffff';
+    el.style.setProperty('--user-color', color);
     const safeColor = value => /^#[0-9a-fA-F]{6}$/.test(value || '') ? value : '';
     const headerColor = safeColor(msg.headerColor);
     const bodyColor = safeColor(msg.bodyColor);
@@ -130,7 +135,7 @@ function createMessageElement(msg) {
         contentDiv.classList.add('emote-only');
     }
 
-    if (currentConfig.chatTheme === 'ffvi') {
+    if (activeTheme() === 'ffvi') {
         const temp = document.createElement('div');
         temp.innerHTML = msg.htmlContent;
         const nodes = Array.from(temp.childNodes);
@@ -206,7 +211,8 @@ function createMessageElement(msg) {
     if (currentConfig.chatHideAfter > 0) {
         setTimeout(() => {
             if (currentConfig.chatAnimations) {
-                el.style.animation = 'fadeOut 0.5s ease-in forwards';
+                const exitAnim = getComputedStyle(el).getPropertyValue('--exit-anim').trim() || 'fadeOut';
+                el.style.animation = `${exitAnim} 0.5s ease-in forwards`;
                 setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 500);
             } else {
                 if (el.parentNode) el.parentNode.removeChild(el);
@@ -220,7 +226,7 @@ function createMessageElement(msg) {
 async function onMessage(msg) {
     if (!allowedPlatforms.includes(msg.platform)) return;
     
-    if (currentConfig.chatTheme === 'ffvi') {
+    if (activeTheme() === 'ffvi') {
         const fontStr = `${currentConfig.chatFontSize}px "Press Start 2P"`;
         if (document.fonts) {
             try { await document.fonts.load(fontStr); } catch(e) {}

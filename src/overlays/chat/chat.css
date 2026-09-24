@@ -401,3 +401,238 @@ body, html {
     80% { transform: translate(-2px, 0) skewX(-2deg); filter: none; }
     100% { transform: translate(0, 0) skewX(0); opacity: 1; }
 }
+
+/* ===================== Skyline Neón (pixel city, fondo principal) ===================== */
+.theme-skyline {
+    --sk-ink: #07030f;
+    --sk-edge: #35217c;
+    font-family: 'Pixelify Sans', 'Silkscreen', monospace;
+}
+.theme-skyline .message {
+    --sign: #ff4fd8;
+    --exit-anim: skylineOff;
+    position: relative;
+    padding: 10px 14px 11px 20px;
+    border: 0;
+    border-radius: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background:
+        linear-gradient(rgba(0, 0, 0, .22) 0 1px, transparent 1px) 0 0 / 100% 3px,
+        linear-gradient(180deg, rgba(43, 20, 100, .93), rgba(13, 6, 38, .95));
+    box-shadow: inset 0 0 0 2px var(--sk-edge), inset 0 3px 0 0 #4a2fa0;
+    clip-path: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
+    transition: none;
+    animation: skylineOn .55s steps(1, end) both;
+}
+.theme-skyline .slide-in { opacity: 0; transform: none; }
+.theme-skyline .platform-twitch { --sign: #b58cff; }
+.theme-skyline .platform-youtube { --sign: #ff4f6d; }
+.theme-skyline .platform-kick { --sign: #7dff6a; }
+.theme-skyline .platform-tiktok { --sign: #37f3ff; }
+/* Tubo de neón vertical, como los letreros de los edificios */
+.theme-skyline .message::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 9px; bottom: 9px;
+    width: 3px;
+    background: var(--sign);
+    box-shadow: 0 0 4px var(--sign), 0 0 10px var(--sign);
+    animation: skylineTube calc(7s + var(--rnd, 0) * 6s) steps(1, end) calc(var(--rnd, 0) * -9s) infinite;
+}
+/* Ventanitas encendidas en la esquina */
+.theme-skyline .message::after {
+    content: '';
+    position: absolute;
+    top: 8px; right: 10px;
+    width: 19px; height: 7px;
+    background:
+        linear-gradient(90deg, #ffd36b 0 2px, transparent 2px) 0 0 / 5px 4px,
+        linear-gradient(90deg, transparent 0 2px, #37f3ff 2px 4px, transparent 4px) 0 4px / 10px 3px no-repeat;
+    opacity: .55;
+    animation: skylineWindows calc(5s + var(--rnd, 0) * 5s) steps(1, end) infinite;
+}
+.theme-skyline .message-header { gap: 7px; margin-bottom: 5px; padding-right: 24px; }
+.theme-skyline .username {
+    font-family: 'Silkscreen', monospace;
+    font-weight: 700;
+    font-size: .95em;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0 var(--sk-ink), 0 0 8px currentColor;
+    animation: skylineFlicker calc(8s + var(--rnd, 0) * 7s) steps(1, end) calc(var(--rnd, 0) * -10s) infinite;
+}
+.theme-skyline .platform-icon { filter: drop-shadow(0 0 3px currentColor); }
+.theme-skyline .message-content {
+    font-size: 1.05em;
+    line-height: 1.35;
+    color: #efe6ff;
+    text-shadow: 2px 2px 0 var(--sk-ink);
+}
+.theme-skyline .badge-text {
+    font-family: 'Silkscreen', monospace;
+    font-size: 9px;
+    padding: 2px 4px 1px;
+    border-radius: 0;
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .35);
+}
+.theme-skyline .badge-icon { border-radius: 0; image-rendering: pixelated; }
+.theme-skyline .message.kind-superchat,
+.theme-skyline .message.kind-supersticker,
+.theme-skyline .message.kind-membership {
+    --sign: var(--paid-header);
+    padding-top: 0;
+    background:
+        linear-gradient(rgba(0, 0, 0, .2) 0 1px, transparent 1px) 0 0 / 100% 3px,
+        linear-gradient(180deg, color-mix(in srgb, var(--paid-header) 70%, #0d0626), color-mix(in srgb, var(--paid-body) 55%, #0d0626));
+}
+.theme-skyline .paid-banner {
+    margin: 0 -14px 9px -20px;
+    padding: 8px 14px 7px 20px;
+    font-family: 'Silkscreen', monospace;
+    font-weight: 400;
+    background: rgba(7, 3, 15, .45);
+    border-bottom: 2px solid rgba(255, 255, 255, .2);
+}
+.theme-skyline .paid-amount { font-family: 'Silkscreen', monospace; font-weight: 700; }
+
+@keyframes skylineOn {
+    0%   { opacity: 0; transform: translateX(24px); }
+    12%  { opacity: 1; transform: translateX(16px); }
+    20%  { opacity: .15; transform: translateX(8px); }
+    32%  { opacity: 1; transform: translateX(4px); }
+    40%  { opacity: .4; }
+    52%, 100% { opacity: 1; transform: none; }
+}
+@keyframes skylineOff {
+    0%   { opacity: 1; }
+    30%  { opacity: 1; transform: scaleY(.1); filter: brightness(2.2); }
+    100% { opacity: 0; transform: scale(0, .05); filter: brightness(3); }
+}
+@keyframes skylineFlicker {
+    0%, 91%, 93%, 96%, 100% { opacity: 1; }
+    92% { opacity: .35; }
+    95% { opacity: .55; }
+}
+@keyframes skylineTube {
+    0%, 86%, 88%, 100% { opacity: 1; }
+    87% { opacity: .2; }
+    94% { opacity: .5; }
+}
+@keyframes skylineWindows {
+    0%, 60%, 100% { opacity: .55; }
+    61% { opacity: .2; }
+    80% { opacity: .75; }
+}
+
+/* ===================== Outrun (synthwave, inicio / despedida) ===================== */
+.theme-outrun {
+    --or-ink: #12021f;
+    --or-cyan: #2de2e6;
+    --or-grid: #ff2bd6;
+    font-family: 'VT323', monospace;
+}
+.theme-outrun .message {
+    --exit-anim: outrunOff;
+    position: relative;
+    overflow: hidden;
+    padding: 11px 18px 16px 20px;
+    border: 0;
+    border-radius: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background:
+        linear-gradient(90deg, #fff27a, #ff8a3d 45%, #ff2f8f) 0 0 / 100% 3px no-repeat,
+        linear-gradient(180deg, rgba(42, 8, 69, .95) 0%, rgba(18, 2, 31, .96) 75%);
+    box-shadow: inset 0 0 0 1px rgba(255, 43, 214, .35);
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    transition: none;
+    animation: outrunIn .45s cubic-bezier(.2, .8, .2, 1) both;
+}
+.theme-outrun .slide-in { opacity: 0; transform: none; }
+/* Piso de rejilla en perspectiva que avanza */
+.theme-outrun .message::after {
+    content: '';
+    position: absolute;
+    left: -40%; right: -40%; bottom: 0;
+    height: 22px;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 43, 214, .5) 0 1px, transparent 1px 18px),
+        repeating-linear-gradient(180deg, rgba(255, 43, 214, .55) 0 1px, transparent 1px 6px);
+    transform: perspective(60px) rotateX(38deg);
+    transform-origin: bottom;
+    -webkit-mask-image: linear-gradient(transparent, #000 70%);
+    mask-image: linear-gradient(transparent, #000 70%);
+    opacity: .55;
+    animation: outrunGrid .6s linear infinite;
+    pointer-events: none;
+}
+.theme-outrun .message > * { position: relative; z-index: 1; }
+.theme-outrun .message-header { gap: 8px; margin-bottom: 6px; }
+/* Luz trasera con el color del usuario */
+.theme-outrun .message-header::before {
+    content: '';
+    flex: none;
+    width: 9px; height: 4px;
+    background: var(--user-color, #ff2a4a);
+    box-shadow: 0 0 6px var(--user-color, #ff2a4a);
+}
+.theme-outrun .username {
+    font-family: 'Press Start 2P', monospace;
+    font-weight: 400;
+    font-size: .8em;
+    line-height: 1.5;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: transparent !important;
+    background: linear-gradient(180deg, #fffbe0 0%, #ffd35c 45%, #ff8a3d 58%, #ff4f8b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(1px 0 0 var(--or-ink)) drop-shadow(-1px 0 0 var(--or-ink)) drop-shadow(0 1px 0 var(--or-ink)) drop-shadow(0 -1px 0 var(--or-ink)) drop-shadow(2px 2px 0 var(--or-cyan));
+}
+.theme-outrun .platform-icon svg { width: 15px; height: 15px; }
+.theme-outrun .message-content {
+    font-size: 1.35em;
+    line-height: 1.05;
+    color: #ffe9ff;
+    text-shadow: 2px 2px 0 var(--or-ink), 0 0 8px rgba(255, 79, 216, .45);
+}
+.theme-outrun .badge-text {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    line-height: 1;
+    padding: 1px 4px;
+    border-radius: 0;
+}
+.theme-outrun .badge-icon { border-radius: 0; }
+.theme-outrun .message.kind-superchat,
+.theme-outrun .message.kind-supersticker,
+.theme-outrun .message.kind-membership {
+    padding-top: 0;
+    background:
+        linear-gradient(90deg, #fff27a, #ff8a3d 45%, #ff2f8f) 0 0 / 100% 3px no-repeat,
+        linear-gradient(180deg, color-mix(in srgb, var(--paid-header) 65%, #2a0845), color-mix(in srgb, var(--paid-body) 50%, #12021f));
+}
+.theme-outrun .paid-banner {
+    margin: 0 -18px 9px -20px;
+    padding: 10px 18px 7px 20px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    font-weight: 400;
+    background: rgba(18, 2, 31, .45);
+}
+.theme-outrun .paid-amount { font-family: 'VT323', monospace; font-size: 22px; color: #fff27a; }
+
+@keyframes outrunIn {
+    0%   { opacity: 0; transform: translateX(70px) skewX(-18deg); filter: blur(2px); }
+    60%  { opacity: 1; transform: translateX(-5px) skewX(3deg); filter: none; }
+    100% { opacity: 1; transform: none; }
+}
+@keyframes outrunOff {
+    to { opacity: 0; transform: translate(-40px, -6px) skewX(-18deg) scale(.9); filter: blur(2px); }
+}
+@keyframes outrunGrid {
+    to { background-position: 0 0, 0 6px; }
+}
