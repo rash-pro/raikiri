@@ -256,8 +256,10 @@ func applyConfigValues(cfg *AppConfig, values map[string]string) {
 		if !ok || raw == "" {
 			return
 		}
-		_ = json.Unmarshal([]byte(raw), dest)
-		if reflect.ValueOf(dest).Elem().Kind() == reflect.String && reflect.ValueOf(dest).Elem().String() == "" {
+		if err := json.Unmarshal([]byte(raw), dest); err == nil {
+			return
+		}
+		if reflect.ValueOf(dest).Elem().Kind() == reflect.String {
 			reflect.ValueOf(dest).Elem().SetString(raw)
 		}
 	}

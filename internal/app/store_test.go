@@ -32,6 +32,9 @@ func TestStoreConfigRoundTrip(t *testing.T) {
 	if got.TwitchClientID != "client" || got.TwitchChannel != "channel" || got.YouTubeID != "@handle" {
 		t.Fatalf("config did not round-trip: %#v", got)
 	}
+	if got.KickUsername != "" || got.TikTokUsername != "" {
+		t.Fatalf("empty usernames did not round-trip: kick=%q tiktok=%q", got.KickUsername, got.TikTokUsername)
+	}
 	if got.TTSEnabled || got.ChatFontSize != 22 {
 		t.Fatalf("typed config did not round-trip: %#v", got)
 	}
