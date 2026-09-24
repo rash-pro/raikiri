@@ -134,12 +134,37 @@ document.addEventListener('DOMContentLoaded', () => {
             prevAlert = null;
             if (window.loadAlertConfigUI) window.loadAlertConfigUI();
             loadWidgetsConfigUI();
+            loadTwitchSecretState();
             
         } catch (err) {
             console.error('Failed to load config:', err);
         }
     }
     loadConfig();
+
+    // The Twitch client secret is write-only: the server never sends it back.
+    async function loadTwitchSecretState() {
+        const input = document.getElementById('twitchClientSecret');
+        if (!input) return;
+        try {
+            const status = await (await fetch('/api/auth/twitch/status')).json();
+            input.placeholder = status.hasClientSecret ? 'Saved (paste a new one to replace)' : 'dev.twitch.tv → your app → New Secret';
+        } catch (err) {
+            console.error('Failed to load Twitch secret state:', err);
+        }
+    }
+
+    async function saveTwitchSecret() {
+        const input = document.getElementById('twitchClientSecret');
+        if (!input || !input.value.trim()) return;
+        const res = await fetch('/api/auth/twitch/secret', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ secret: input.value.trim() }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        input.value = '';
+    }
 
     // Volume slider sync
     const volSlider = document.getElementById('config-audioVolume');
@@ -171,7 +196,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target.id !== 'config-form') return;
         if (event.detail.successful) {
             showToast(document.getElementById('toast').innerText || 'Configuration Saved!');
-            loadConfig();
+            saveTwitchSecret()
+                .catch(err => alert('Failed to save Twitch client secret: ' + err.message))
+                .finally(loadConfig);
         } else {
             alert(event.detail.xhr.responseText || 'Failed to save config');
         }

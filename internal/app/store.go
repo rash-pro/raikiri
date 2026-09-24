@@ -69,6 +69,7 @@ func (s *Store) migrate(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS tokens (platform TEXT PRIMARY KEY, access_token TEXT NOT NULL, refresh_token TEXT, expires_at INTEGER, scope TEXT)`,
 		`CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, platform TEXT NOT NULL, data TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`,
 		`CREATE TABLE IF NOT EXISTS widget_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
+		`CREATE TABLE IF NOT EXISTS secrets (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
 	}
 	for _, q := range queries {
 		if _, err := s.db.ExecContext(ctx, q); err != nil {
@@ -134,6 +135,25 @@ func (s *Store) Token(ctx context.Context, platform string) (TokenData, error) {
 		return t, nil
 	}
 	return t, err
+}
+
+// Secrets live apart from the config table so they never reach /api/config (which overlays read).
+func (s *Store) Secret(ctx context.Context, key string) (string, error) {
+	var v string
+	err := s.db.QueryRowContext(ctx, `SELECT value FROM secrets WHERE key = ?`, key).Scan(&v)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	return v, err
+}
+
+func (s *Store) SaveSecret(ctx context.Context, key, value string) error {
+	if value == "" {
+		_, err := s.db.ExecContext(ctx, `DELETE FROM secrets WHERE key = ?`, key)
+		return err
+	}
+	_, err := s.db.ExecContext(ctx, `INSERT OR REPLACE INTO secrets (key, value) VALUES (?, ?)`, key, value)
+	return err
 }
 
 func (s *Store) SaveToken(ctx context.Context, platform string, t TokenData) error {

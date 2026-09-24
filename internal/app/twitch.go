@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
@@ -18,6 +19,11 @@ import (
 	"github.com/coder/websocket"
 	twitch "github.com/gempir/go-twitch-irc/v4"
 )
+
+// Overridable in tests.
+var twitchTokenURL = "https://id.twitch.tv/oauth2/token"
+
+const twitchClientSecretKey = "twitchClientSecret"
 
 type TwitchDeviceCode struct {
 	DeviceCode      string `json:"deviceCode"`
@@ -76,7 +82,7 @@ func (t *TwitchAuth) PollForToken(ctx context.Context, deviceCode string, interv
 		case <-ticker.C:
 		}
 		form := "client_id=" + t.clientID + "&device_code=" + deviceCode + "&grant_type=urn:ietf:params:oauth:grant-type:device_code"
-		req, _ := http.NewRequestWithContext(ctx, http.MethodPost, "https://id.twitch.tv/oauth2/token", strings.NewReader(form))
+		req, _ := http.NewRequestWithContext(ctx, http.MethodPost, twitchTokenURL, strings.NewReader(form))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -126,8 +132,13 @@ func (t *TwitchAuth) AuthenticatedUserName(ctx context.Context, accessToken stri
 }
 
 func (t *TwitchAuth) RefreshToken(ctx context.Context, refreshToken string) (TokenData, error) {
-	form := "client_id=" + t.clientID + "&grant_type=refresh_token&refresh_token=" + refreshToken
-	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, "https://id.twitch.tv/oauth2/token", strings.NewReader(form))
+	values := url.Values{"client_id": {t.clientID}, "grant_type": {"refresh_token"}, "refresh_token": {refreshToken}}
+	// Confidential Twitch apps require the secret to refresh; public apps must not send one.
+	if secret, err := t.store.Secret(ctx, twitchClientSecretKey); err == nil && secret != "" {
+		values.Set("client_secret", secret)
+	}
+	form := values.Encode()
+	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, twitchTokenURL, strings.NewReader(form))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -143,12 +154,12 @@ func (t *TwitchAuth) RefreshToken(ctx context.Context, refreshToken string) (Tok
 		return TokenData{}, err
 	}
 	expiresIn, _ := payload["expires_in"].(float64)
-	
+
 	refreshTokenOut := fmt.Sprint(payload["refresh_token"])
 	if refreshTokenOut == "" || refreshTokenOut == "<nil>" {
 		refreshTokenOut = refreshToken
 	}
-	
+
 	token := TokenData{
 		AccessToken:  fmt.Sprint(payload["access_token"]),
 		RefreshToken: refreshTokenOut,

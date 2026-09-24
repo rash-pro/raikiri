@@ -99,6 +99,7 @@ func (a *App) routes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/config/form", a.handleConfigForm)
 	mux.HandleFunc("/api/auth/twitch/device-code", a.handleTwitchDeviceCode)
 	mux.HandleFunc("/api/auth/twitch/status", a.handleTwitchStatus)
+	mux.HandleFunc("/api/auth/twitch/secret", a.handleTwitchSecret)
 	mux.HandleFunc("/api/alerts/test", a.handleAlertTest)
 	mux.HandleFunc("/api/tts/test", a.handleTTSTest)
 	mux.HandleFunc("/api/chat/test", a.handleChatTest)
@@ -376,15 +377,39 @@ func (a *App) handleTwitchDeviceCode(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handleTwitchStatus(w http.ResponseWriter, r *http.Request) {
-	token, err := a.store.Token(r.Context(), "twitch")
-	if err != nil || token.AccessToken == "" {
-		writeJSON(w, map[string]any{"authenticated": false})
+	secret, _ := a.store.Secret(r.Context(), twitchClientSecretKey)
+	// Refreshes an expired token when possible, so "authenticated" means the token actually works.
+	token, _ := GetOrRefreshTwitchToken(r.Context(), a.store, a.config().TwitchClientID, a.logger)
+	valid := token.AccessToken != "" && (token.ExpiresAt == 0 || time.Now().UnixMilli() < token.ExpiresAt)
+	if !valid {
+		writeJSON(w, map[string]any{"authenticated": false, "hasClientSecret": secret != ""})
 		return
 	}
 	writeJSON(w, map[string]any{
-		"authenticated": true,
-		"username":      a.config().TwitchChannel,
+		"authenticated":   true,
+		"username":        a.config().TwitchChannel,
+		"hasClientSecret": secret != "",
 	})
+}
+
+func (a *App) handleTwitchSecret(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	var body struct {
+		Secret string `json:"secret"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := a.store.SaveSecret(r.Context(), twitchClientSecretKey, strings.TrimSpace(body.Secret)); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	a.restartAdapters(r.Context())
+	writeJSON(w, map[string]bool{"success": true})
 }
 
 func (a *App) routeChat(msg ChatMessage) {
