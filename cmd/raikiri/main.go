@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"raikiri/internal/app"
@@ -20,8 +21,9 @@ func main() {
 		return
 	}
 
+	// Bare flags (e.g. the installer's "--tray --data-dir ...") mean serve.
 	cmd := "serve"
-	if len(os.Args) > 1 && os.Args[1] != "serve" {
+	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-") {
 		cmd = os.Args[1]
 	}
 
@@ -29,6 +31,7 @@ func main() {
 	host := fs.String("host", getenv("RAIKIRI_HOST", "127.0.0.1"), "host to bind")
 	port := fs.Int("port", getenvInt("RAIKIRI_PORT", 30001), "port to bind")
 	dataDir := fs.String("data-dir", getenv("RAIKIRI_DATA_DIR", "./data"), "runtime data directory")
+	tray := fs.Bool("tray", false, "run from a system tray icon and log to <data-dir>/raikiri.log (Windows)")
 	if len(os.Args) > 1 && os.Args[1] == cmd {
 		_ = fs.Parse(os.Args[2:])
 	} else {
@@ -41,8 +44,13 @@ func main() {
 
 	switch cmd {
 	case "serve":
+		opts := app.Options{Host: *host, Port: *port, DataDir: *dataDir, Version: version, Logger: logger}
+		if *tray {
+			runTray(ctx, opts)
+			return
+		}
 		logger.Info("starting raikiri", "version", version)
-		if err := app.Serve(ctx, app.Options{Host: *host, Port: *port, DataDir: *dataDir, Version: version, Logger: logger}); err != nil {
+		if err := app.Serve(ctx, opts); err != nil {
 			logger.Error("server stopped", "error", err)
 			os.Exit(1)
 		}

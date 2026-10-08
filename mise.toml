@@ -21,15 +21,32 @@ rm -rf dist/release
 mkdir -p dist/release
 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-linux-amd64 ./cmd/raikiri
 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-linux-arm64 ./cmd/raikiri
+# Windows resources (icon, version info, manifest) only exist during the Windows builds.
+WIN_VERSION="${RAIKIRI_VERSION#v}"; WIN_VERSION="${WIN_VERSION%%-*}"
+case "$WIN_VERSION" in [0-9]*.[0-9]*.[0-9]*) WIN_VERSION="$WIN_VERSION.0" ;; *) WIN_VERSION="0.0.0.0" ;; esac
+go run github.com/tc-hib/go-winres@v0.3.3 simply --arch amd64 --out cmd/raikiri/rsrc --icon cmd/raikiri/raikiri.ico --manifest gui \\
+  --product-name Raikiri --file-description Raikiri --product-version "$WIN_VERSION" --file-version "$WIN_VERSION"
 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-windows-amd64.exe ./cmd/raikiri
+# The installer ships a GUI-subsystem build: no console window, Raikiri lives in the tray.
+mkdir -p dist/windows
+GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w -H windowsgui -X main.version=$RAIKIRI_VERSION" -o dist/windows/raikiri.exe ./cmd/raikiri
+rm -f cmd/raikiri/rsrc_windows_amd64.syso
 GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-darwin-arm64 ./cmd/raikiri
 GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-darwin-amd64 ./cmd/raikiri
 cp internal/tiktoklive/NOTICE dist/release/THIRD_PARTY_NOTICES
 """
 
-[tasks.release-sha256]
-description = "Generate SHA256 checksums for release binaries"
+[tasks.installer]
+description = "Build the Windows installer (needs makensis or docker)"
 depends = ["release"]
+run = """
+RAIKIRI_VERSION="${RAIKIRI_VERSION:-$(git diff --quiet && git describe --tags --exact-match 2>/dev/null || git describe --tags --always --dirty)}"
+packaging/windows/build-installer.sh "$RAIKIRI_VERSION"
+"""
+
+[tasks.release-sha256]
+description = "Generate SHA256 checksums for release binaries and the installer"
+depends = ["installer"]
 run = "cd dist/release && sha256sum * > SHA256SUMS"
 
 [tasks.test]

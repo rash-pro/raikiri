@@ -37,7 +37,7 @@ func runClaude(ctx context.Context, model, prompt, schema string) ([]byte, error
 	if err != nil {
 		return nil, err
 	}
-	args := []string{"-p", prompt,
+	args := []string{"-p",
 		"--effort", "low",
 		"--tools", "",
 		"--no-session-persistence",
@@ -49,7 +49,7 @@ func runClaude(ctx context.Context, model, prompt, schema string) ([]byte, error
 	if model != "" {
 		args = append(args, "--model", model)
 	}
-	out, err := runAgentCommand(ctx, bin, args)
+	out, err := runAgentCommand(ctx, bin, args, prompt)
 	if err != nil {
 		return nil, err
 	}
@@ -92,17 +92,20 @@ func runCodex(ctx context.Context, model, prompt, schema string) ([]byte, error)
 	if model != "" {
 		args = append(args, "--model", model)
 	}
-	if _, err := runAgentCommand(ctx, bin, append(args, prompt)); err != nil {
+	// "-" reads the prompt from stdin.
+	if _, err := runAgentCommand(ctx, bin, append(args, "-"), prompt); err != nil {
 		return nil, err
 	}
 	return os.ReadFile(outPath)
 }
 
-func runAgentCommand(ctx context.Context, bin string, args []string) ([]byte, error) {
+// runAgentCommand passes the prompt on stdin: as an argument its newlines and quotes would
+// be mangled when Windows runs an npm-installed CLI through a .cmd shim.
+func runAgentCommand(ctx context.Context, bin string, args []string, prompt string) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, bin, args...)
-	// Run outside any project so no CLAUDE.md/AGENTS.md leaks into the prompt. Stdin stays
-	// empty: codex otherwise waits for more input on it.
+	// Run outside any project so no CLAUDE.md/AGENTS.md leaks into the prompt.
 	cmd.Dir = os.TempDir()
+	cmd.Stdin = strings.NewReader(prompt)
 	var stderr strings.Builder
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()

@@ -11,3 +11,4 @@ scratch_tts.ts
 # Local builds
 /raikiri-linux-amd64
 /raikiri-linux-amd64.bak
+/cmd/raikiri/*.syso

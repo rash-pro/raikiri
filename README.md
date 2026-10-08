@@ -13,7 +13,7 @@ This is the native Go rewrite. It ships as a small standalone binary. If you nee
 
 ## What You Get
 
-- Native executable for Linux, Windows, and macOS.
+- Native executable for Linux, Windows, and macOS, plus a Windows installer that runs Raikiri from the system tray.
 - Embedded dashboard and OBS overlay assets.
 - Local SQLite config/database under your chosen data directory.
 - Twitch chat and EventSub alerts, YouTube Live chat via web-first polling, and TikTok LIVE chat/events.
@@ -21,14 +21,17 @@ This is the native Go rewrite. It ships as a small standalone binary. If you nee
 - Local media support via `/media/*`.
 - OBS browser sources for chat, alerts, widgets, and audio.
 - Configurable widgets for support goals, recent events, and user-defined custom overlays.
+- Steam achievement toasts (including FFNx-based Final Fantasy releases) and a Final Fantasy roulette widget.
+- A stream-info dock that sets title, game, and tags on Twitch and YouTube at once, with title and tag ideas from a local AI agent CLI (Claude Code or Codex).
 
 ## Downloading a Release
 
 Download the binary for your OS from the release artifacts:
 
+- **Windows (recommended): `raikiri-windows-amd64-setup.exe`** — installer, see below.
+- Windows x64 portable/CLI: `raikiri-windows-amd64.exe`
 - Linux x64: `raikiri-linux-amd64`
 - Linux ARM64: `raikiri-linux-arm64`
-- Windows x64: `raikiri-windows-amd64.exe`
 - macOS Apple Silicon: `raikiri-darwin-arm64`
 - macOS Intel: `raikiri-darwin-amd64`
 
@@ -56,7 +59,17 @@ If macOS Gatekeeper blocks the binary, allow it in System Settings or remove qua
 xattr -d com.apple.quarantine ./raikiri-darwin-arm64
 ```
 
-### Windows PowerShell
+### Windows (installer)
+
+Run `raikiri-windows-amd64-setup.exe`. It installs for your user only (no administrator prompt) into `%LOCALAPPDATA%\Programs\Raikiri`, adds a Start menu entry, and optionally a desktop shortcut and **Start with Windows**.
+
+Raikiri then runs from a tray icon next to the clock (**Open dashboard**, **Open data folder**, **Quit**) instead of a console window. The dashboard opens by itself on the first run; launching Raikiri again while it is running just opens the dashboard. Settings, tokens, and logs live in `%APPDATA%\Raikiri` (`raikiri.log` there is the place to look when something fails).
+
+The installer is not code-signed yet, so Windows SmartScreen may say "Windows protected your PC": choose **More info → Run anyway**.
+
+Uninstall from **Settings → Apps**. It asks before deleting `%APPDATA%\Raikiri`, so your configuration survives reinstalls by default.
+
+### Windows PowerShell (portable)
 
 ```powershell
 .\raikiri-windows-amd64.exe serve --host 127.0.0.1 --port 30001 --data-dir .\data
@@ -80,13 +93,17 @@ http://localhost:30001/dashboard/
 
 For Twitch chat only, set **Channel Username** in the dashboard and save.
 
-For Twitch EventSub alerts, create a Twitch developer app, copy its **Client ID**, save it in the dashboard, then click **Authenticate Device**. Open the activation link and enter the displayed code. Raikiri stores the token locally in SQLite under `--data-dir`.
+For Twitch EventSub alerts and the stream-info dock, create a Twitch developer app, copy its **Client ID** and a **Client Secret**, save them in the dashboard, then click **Authenticate Device**. Open the activation link and enter the displayed code. Raikiri stores the token locally in SQLite under `--data-dir` and renews it on its own; without the client secret the token can't be renewed and you'd have to authenticate before every stream.
+
+The dashboard's Twitch card links a step-by-step visual guide (`/dashboard/guides/twitch.html`).
 
 ### YouTube
 
 Set **Channel ID**, **Video ID**, or handle-like live target in the YouTube field and save.
 
-The native adapter is web-first: it follows YouTube's public live page and Innertube continuation flow, similar to the previous JavaScript implementation. It does not require a YouTube API key in Phase 1.
+The native adapter is web-first: it follows YouTube's public live page and Innertube continuation flow, similar to the previous JavaScript implementation. Reading chat does not require a YouTube API key.
+
+Changing the stream title and tags from the stream-info dock needs a Google OAuth **Desktop app** client: paste its client ID and secret in the YouTube card, save, and click **Connect YouTube**. The card links a visual guide (`/dashboard/guides/youtube.html`). While the Google app is in *Testing*, Google expires the sign-in every 7 days; reconnect when the dock shows YouTube disconnected.
 
 ### TikTok LIVE
 
@@ -111,6 +128,8 @@ Add these as OBS Browser Sources:
 - Support goal widget: `http://localhost:30001/overlay/widgets/support-goal/`
 - Recent events widget: `http://localhost:30001/overlay/widgets/recent-events/`
 - Custom widget: `http://localhost:30001/overlay/widgets/custom/?id=YOUR_WIDGET_ID`
+- Steam achievements: `http://localhost:30001/overlay/widgets/achievements/`
+- Final Fantasy roulette: `http://localhost:30001/overlay/widgets/roulette/` (spin from the dashboard or `POST /api/widgets/roulette/spin`)
 - Audio output: `http://localhost:30001/audio/`
 
 Suggested sizes:
@@ -121,6 +140,13 @@ Suggested sizes:
 - Audio: any size; enable **Control audio via OBS** if desired.
 
 If OBS or the browser blocks autoplay on `/audio`, right-click the source, choose **Interact**, and press **Enable Audio** once.
+
+## Stream Info Dock
+
+`http://localhost:30001/dock/stream-info/` sets the title, game, and tags on Twitch and YouTube at once. Use it as an OBS Custom Browser Dock or keep it open in a browser tab.
+
+- Twitch gets title, category, and tags; YouTube gets title and tags (plus the Gaming category), because the YouTube API can't set the specific game. If no YouTube broadcast exists yet, the title is applied within 30 seconds of going live.
+- **Sugerir** asks an AI agent CLI installed on the same machine for title and tag ideas, based on your recent titles, past Twitch broadcasts, and Steam achievement progress for the current game. Pick the CLI (Claude Code or Codex) and model in the dashboard under **Assistant**. It uses the CLI's own login; no API key is stored in Raikiri.
 
 ## Widgets
 
@@ -265,6 +291,14 @@ Run the server:
 raikiri serve --host 127.0.0.1 --port 30001 --data-dir ./data
 ```
 
+Run from a Windows tray icon (what the installer's shortcuts do; logs go to `<data-dir>/raikiri.log`):
+
+```powershell
+raikiri.exe --tray --data-dir "$env:APPDATA\Raikiri"
+```
+
+Flags without a command mean `serve`.
+
 Show version:
 
 ```bash
@@ -316,7 +350,7 @@ RAIKIRI_TIKTOK_LIVE_USER=creator go test -tags=integration ./internal/tiktoklive
 
 ## Release Builds
 
-Build all release binaries and checksums:
+Build all release binaries, the Windows installer, and checksums (the installer needs `makensis`, or Docker to run it from Debian's `nsis` package):
 
 ```bash
 mise run release-sha256
@@ -333,12 +367,13 @@ Generated files:
 - `raikiri-linux-amd64`
 - `raikiri-linux-arm64`
 - `raikiri-windows-amd64.exe`
+- `raikiri-windows-amd64-setup.exe`
 - `raikiri-darwin-arm64`
 - `raikiri-darwin-amd64`
 - `THIRD_PARTY_NOTICES`
 - `SHA256SUMS`
 
-Linux artifacts can be smoke-tested locally from a Linux machine. Windows and macOS artifacts are cross-compiled and should be tested on their target OS before publishing.
+Linux artifacts can be smoke-tested locally from a Linux machine. The Windows installer can be smoke-tested with Wine (`wine raikiri-windows-amd64-setup.exe /S`), but Windows and macOS artifacts should still be tested on their target OS.
 
 ## Footprint
 
