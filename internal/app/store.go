@@ -108,7 +108,8 @@ func (s *Store) SaveConfig(ctx context.Context, cfg AppConfig) error {
 		"ttsCmdEnabled": cfg.TTSCmdEnabled, "ttsCmdPrefix": cfg.TTSCmdPrefix, "ttsBlockedWords": cfg.TTSBlockedWords, "ttsCmdMod": cfg.TTSCmdMod,
 		"ttsCmdSub": cfg.TTSCmdSub, "ttsCmdVip": cfg.TTSCmdVip, "ttsCmdHost": cfg.TTSCmdHost, "chatTheme": cfg.ChatTheme,
 		"chatFontSize": cfg.ChatFontSize, "chatHideAfter": cfg.ChatHideAfter, "chatAnimations": cfg.ChatAnimations,
-		"alertsConfig": cfg.AlertsConfig, "widgetsConfig": cfg.WidgetsConfig,
+		"alertsConfig": cfg.AlertsConfig, "widgetsConfig": cfg.WidgetsConfig, "achievementsConfig": cfg.Achievements,
+		"suggestAgent": cfg.SuggestAgent, "suggestModel": cfg.SuggestModel,
 	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -309,4 +310,29 @@ func applyConfigValues(cfg *AppConfig, values map[string]string) {
 	set("chatAnimations", &cfg.ChatAnimations)
 	set("alertsConfig", &cfg.AlertsConfig)
 	set("widgetsConfig", &cfg.WidgetsConfig)
+	set("achievementsConfig", &cfg.Achievements)
+	set("suggestAgent", &cfg.SuggestAgent)
+	set("suggestModel", &cfg.SuggestModel)
+}
+
+// WidgetJSON decodes a widget_state value into dst, leaving dst untouched when the key is missing.
+func (s *Store) WidgetJSON(ctx context.Context, key string, dst any) error {
+	var raw string
+	err := s.db.QueryRowContext(ctx, `SELECT value FROM widget_state WHERE key = ?`, key).Scan(&raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(raw), dst)
+}
+
+func (s *Store) SaveWidgetJSON(ctx context.Context, key string, value any) error {
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, `INSERT OR REPLACE INTO widget_state (key, value) VALUES (?, ?)`, key, string(raw))
+	return err
 }

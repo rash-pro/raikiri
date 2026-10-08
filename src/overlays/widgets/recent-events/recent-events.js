@@ -29,6 +29,11 @@ const icons = {
     share: '↗'
 };
 
+// Names and amounts come from viewers (TikTok/YouTube display names are free text).
+function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 function render(state) {
     const config = state?.recentEvents;
     applyWidgetAppearance(state?.config?.recentEvents?.appearance || {});
@@ -41,10 +46,10 @@ function render(state) {
         item.innerHTML = `
             <div class="event-icon">${icons[evt.type] || '*'}</div>
             <div class="event-main">
-                <div class="event-user">${evt.user || evt.platform || 'Viewer'}</div>
+                <div class="event-user">${escapeHTML(evt.user || evt.platform || 'Viewer')}</div>
                 <div class="event-label">${label}</div>
             </div>
-            <div class="event-amount">${evt.amount || ''}</div>
+            <div class="event-amount">${escapeHTML(evt.amount || '')}</div>
         `;
         root.appendChild(item);
     });

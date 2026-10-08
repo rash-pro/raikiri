@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Setup · Raikiri</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="guides.css">
+</head>
+<body class="twitch">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-glitch" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></symbol>
+</svg>
+
+<main class="page">
+    <a class="back" href="/dashboard/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Dashboard</a>
+
+    <header class="hero">
+        <div class="hero-icon"><svg><use href="#i-glitch"/></svg></div>
+        <div>
+            <h1>Connect Twitch</h1>
+            <p>Create a Twitch app, then hand its keys to Raikiri.</p>
+        </div>
+    </header>
+    <div class="meta">
+        <span class="chip">About <b>5 min</b></span>
+        <span class="chip">Log in with your <b>streaming account</b></span>
+    </div>
+
+    <!-- 1 -->
+    <section class="step">
+        <div class="step-num">1</div>
+        <h2>Open the Twitch developer console and click <span class="k">Register Your Application</span></h2>
+        <div class="step-body">
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>dev.twitch.tv</b>/console/apps</span></div></div>
+                <div class="pg pg-twdev">
+                    <div class="tw-nav"><svg><use href="#i-glitch"/></svg><span class="brand">twitch <span>developers</span></span><i class="avatar"></i></div>
+                    <div class="tw-shell">
+                        <div class="tw-side"><div>Dashboard</div><div class="on">Applications</div><div>Extensions</div><div>Drops</div><div>Settings</div></div>
+                        <div class="tw-main">
+                            <div class="row between">
+                                <h3>Applications</h3>
+                                <span class="m-btn pri hl" data-n="1">+ Register Your Application</span>
+                            </div>
+                            <div class="tw-table">
+                                <div class="tw-tr head"><span>Name</span><span class="ct">Category</span><span></span></div>
+                                <div class="tw-tr"><span class="skel" style="width:60%"></span><span class="skel ct" style="width:70%"></span><span class="skel" style="width:48px"></span></div>
+                                <div class="tw-tr"><span class="skel" style="width:45%"></span><span class="skel ct" style="width:55%"></span><span class="skel" style="width:48px"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="step">
+        <div class="step-num">2</div>
+        <h2>Fill in the form and click <span class="k">Create</span></h2>
+        <div class="step-body">
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>dev.twitch.tv</b>/console/apps/create</span></div></div>
+                <div class="pg pg-twdev">
+                    <div class="tw-nav"><svg><use href="#i-glitch"/></svg><span class="brand">twitch <span>developers</span></span><i class="avatar"></i></div>
+                    <div class="tw-shell">
+                        <div class="tw-side"><div>Dashboard</div><div class="on">Applications</div><div>Extensions</div><div>Drops</div><div>Settings</div></div>
+                        <div class="tw-main">
+                            <h3>Register Your Application</h3>
+                            <div class="tw-form">
+                                <div class="m-field">
+                                    <span class="m-label">Name <span class="req">*</span></span>
+                                    <div class="m-box hl" data-n="1"><span class="v">Raikiri-yourname</span></div>
+                                </div>
+                                <div class="m-field">
+                                    <span class="m-label">OAuth Redirect URLs <span class="req">*</span></span>
+                                    <div class="row">
+                                        <div class="m-box grow hl" data-n="2"><span class="v mono">http://localhost</span></div>
+                                        <span class="m-btn sec">Add</span>
+                                    </div>
+                                </div>
+                                <div class="m-field">
+                                    <span class="m-label">Category <span class="req">*</span></span>
+                                    <div class="m-box hl" data-n="3"><span class="v">Broadcaster Suite</span><span class="caret">&#9660;</span></div>
+                                </div>
+                                <div class="m-field">
+                                    <span class="m-label">Client Type <span class="req">*</span></span>
+                                    <div class="row" style="gap:18px">
+                                        <span class="m-radio on hl" data-n="4" style="border-radius:6px;padding:2px 6px 2px 4px"><i></i><span>Confidential</span></span>
+                                        <span class="m-radio"><i></i><span>Public</span></span>
+                                    </div>
+                                </div>
+                                <div><span class="m-btn pri hl" data-n="5">Create</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="note"><svg><use href="#i-info"/></svg><div>The form requires a redirect URL, but Raikiri never uses it: it signs in with a device code instead.</div></div>
+        </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="step">
+        <div class="step-num">3</div>
+        <h2>Click <span class="k">Manage</span> on your new app</h2>
+        <div class="step-body">
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>dev.twitch.tv</b>/console/apps</span></div></div>
+                <div class="pg pg-twdev">
+                    <div class="tw-nav"><svg><use href="#i-glitch"/></svg><span class="brand">twitch <span>developers</span></span><i class="avatar"></i></div>
+                    <div class="tw-shell">
+                        <div class="tw-side"><div>Dashboard</div><div class="on">Applications</div><div>Extensions</div><div>Drops</div><div>Settings</div></div>
+                        <div class="tw-main">
+                            <div class="row between">
+                                <h3>Applications</h3>
+                                <span class="m-btn pri">+ Register Your Application</span>
+                            </div>
+                            <div class="tw-table">
+                                <div class="tw-tr head"><span>Name</span><span class="ct">Category</span><span></span></div>
+                                <div class="tw-tr"><span class="nm">Raikiri-yourname</span><span class="ct">Broadcaster Suite</span><span class="m-btn sec hl" data-n="1">Manage</span></div>
+                                <div class="tw-tr"><span class="skel" style="width:45%"></span><span class="skel ct" style="width:55%"></span><span class="skel" style="width:48px"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="step">
+        <div class="step-num">4</div>
+        <h2>Copy the Client ID, then click <span class="k">New Secret</span> and copy the secret</h2>
+        <div class="step-body">
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>dev.twitch.tv</b>/console/apps/h7k2x9qmv0w3ztn8r5plb1c4ya6d</span></div></div>
+                <div class="pg pg-twdev">
+                    <div class="tw-nav"><svg><use href="#i-glitch"/></svg><span class="brand">twitch <span>developers</span></span><i class="avatar"></i></div>
+                    <div class="tw-shell">
+                        <div class="tw-side"><div>Dashboard</div><div class="on">Applications</div><div>Extensions</div><div>Drops</div><div>Settings</div></div>
+                        <div class="tw-main">
+                            <h3>Manage Application</h3>
+                            <div class="tw-form">
+                                <div class="m-field">
+                                    <span class="m-label">Name</span>
+                                    <div class="m-box"><span class="v">Raikiri-yourname</span></div>
+                                </div>
+                                <div class="m-field">
+                                    <span class="m-label">Category</span>
+                                    <div class="m-box"><span class="v">Broadcaster Suite</span><span class="caret">&#9660;</span></div>
+                                </div>
+                                <div class="m-field">
+                                    <span class="m-label">Client ID</span>
+                                    <div class="m-box hl" data-n="1"><span class="v mono">h7k2x9qmv0w3ztn8r5plb1c4ya6d</span></div>
+                                </div>
+                                <div class="m-field">
+                                    <span class="m-label">Client Secret</span>
+                                    <div><span class="m-btn sec hl" data-n="2">New Secret</span></div>
+                                    <div class="m-box reveal hl" data-n="3" style="margin-top:6px"><span class="v mono">q8w3e1r7t5y2u9i4o6p0zxcvbn1mkl</span></div>
+                                </div>
+                                <div><span class="m-btn pri">Save</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="note warn"><svg><use href="#i-warn"/></svg><div>Twitch shows the secret <b>only once</b>. Clicking New Secret again invalidates the previous one.</div></div>
+        </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="step">
+        <div class="step-num">5</div>
+        <h2>In Raikiri, fill in the Twitch Auth card and click <span class="k">Save Configuration</span></h2>
+        <div class="step-body">
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><span><b>localhost:30001</b>/dashboard/</span></div></div>
+                <div class="pg pg-rk">
+                    <div class="rk-shell">
+                        <div class="rk-side">
+                            <div class="rk-logo"><i></i>Raikiri</div>
+                            <div class="rk-nav on">Platforms Connect</div>
+                            <div class="rk-nav">Audio &amp; TTS</div>
+                            <div class="rk-nav">Overlays</div>
+                            <div class="rk-nav">Widgets</div>
+                        </div>
+                        <div class="rk-main">
+                            <div class="rk-top">
+                                <div><h3>Platforms Setup</h3><p>Connect your streaming accounts for real-time events.</p></div>
+                                <span class="m-btn save hl" data-n="4">Save Configuration</span>
+                            </div>
+                            <div class="rk-card">
+                                <div class="rk-card-h"><span class="rk-ico tw">Tw</span><h4>Twitch Auth</h4></div>
+                                <div class="rk-card-b">
+                                    <div class="m-field">
+                                        <span class="m-label">Client ID</span>
+                                        <div class="m-box hl" data-n="1"><span class="v mono">h7k2x9qmv0w3ztn8r5plb1c4ya6d</span></div>
+                                    </div>
+                                    <div class="m-field">
+                                        <span class="m-label">Client Secret</span>
+                                        <div class="m-box hl" data-n="2"><span class="v dots-pw">••••••••••••••••••••••••••••••</span></div>
+                                    </div>
+                                    <div class="m-field">
+                                        <span class="m-label">Channel Username</span>
+                                        <div class="m-box hl" data-n="3"><span class="v">yourname</span></div>
+                                    </div>
+                                    <div><span class="m-btn tw">Authenticate Device</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="note"><svg><use href="#i-info"/></svg><div><b>Channel Username</b> is your Twitch login name. The secret is stored only when you click Save Configuration.</div></div>
+        </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="step">
+        <div class="step-num">6</div>
+        <h2>Click <span class="k">Authenticate Device</span>, enter the code at twitch.tv/activate and authorize</h2>
+        <div class="step-body">
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><span><b>localhost:30001</b>/dashboard/</span></div></div>
+                <div class="pg pg-rk">
+                    <div class="rk-main">
+                        <div class="rk-card">
+                            <div class="rk-card-h"><span class="rk-ico tw">Tw</span><h4>Twitch Auth</h4></div>
+                            <div class="rk-card-b">
+                                <div><span class="m-btn tw hl" data-n="1">Authenticate Device</span></div>
+                                <div class="rk-code">
+                                    <span>Go to <a>twitch.tv/activate</a> and enter the code:</span>
+                                    <span class="code">ABCD-EFGH</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pair">
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>twitch.tv</b>/activate</span></div></div>
+                    <div class="pg pg-tv">
+                        <svg class="logo"><use href="#i-glitch"/></svg>
+                        <h4>Activate your device</h4>
+                        <p>Enter the code displayed on your device</p>
+                        <div class="m-box hl" data-n="2"><span>ABCD-EFGH</span></div>
+                        <span class="m-btn pri hl" data-n="3" style="margin-top:8px">Activate</span>
+                    </div>
+                </div>
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>id.twitch.tv</b>/oauth2/authorize</span></div></div>
+                    <div class="pg pg-tv">
+                        <div class="apps"><i></i><span class="link"></span><i class="app"></i></div>
+                        <h4>Raikiri-yourname</h4>
+                        <p>wants to access your account</p>
+                        <div class="scopes"><span class="skel" style="width:80%"></span><span class="skel" style="width:65%"></span><span class="skel" style="width:72%"></span></div>
+                        <div class="row" style="justify-content:center">
+                            <span class="m-btn sec">Cancel</span>
+                            <span class="m-btn pri hl" data-n="4">Authorize</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="finish">
+        <h2>Done</h2>
+        <div class="note ok"><svg><use href="#i-check"/></svg><div>Raikiri renews the Twitch token on its own, so you don't need to authenticate again.</div></div>
+        <div class="note warn"><svg><use href="#i-warn"/></svg><div>Without the <b>Client Secret</b> the token can't be renewed: it expires after a few hours and you'd have to click Authenticate Device before every stream. If that happens, add the secret (step 4–5) and authenticate once more.</div></div>
+    </section>
+</main>
+</body>
+</html>

@@ -9,7 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
         '#platforms': { title: 'Platforms Setup', sub: 'Connect your streaming accounts for real-time events.' },
         '#tts': { title: 'Audio & TTS', sub: 'Configure Edge TTS integration and audio routing.' },
         '#overlays': { title: 'Overlays', sub: 'Browser sources to add directly to OBS.' },
-        '#widgets': { title: 'Widgets', sub: 'Configurable browser sources for stream scenes.' }
+        '#widgets': { title: 'Widgets', sub: 'Configurable browser sources for stream scenes.' },
+        '#assistant': { title: 'Assistant', sub: 'AI suggestions in the stream-info dock.' }
     };
 
     navItems.forEach(item => {
@@ -57,7 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
          'ttsEnabled', 'ttsVoice', 'ttsMinBits', 'audioMode', 'ttsSubTier', 'audioVolume',
          'ttsRewardEnabled', 'ttsRewardName', 'ttsCmdEnabled', 'ttsCmdPrefix', 'ttsBlockedWords',
          'ttsCmdMod', 'ttsCmdSub', 'ttsCmdVip', 'ttsCmdHost',
-         'chatTheme', 'chatFontSize', 'chatHideAfter', 'chatAnimations'].forEach(key => {
+         'chatTheme', 'chatFontSize', 'chatHideAfter', 'chatAnimations',
+         'suggestAgent', 'suggestModel'].forEach(key => {
             const el = document.getElementById(`config-${key}`);
             if (el) {
                 if (el.type === 'checkbox') payload[key] = el.checked;
@@ -135,6 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.loadAlertConfigUI) window.loadAlertConfigUI();
             loadWidgetsConfigUI();
             loadTwitchSecretState();
+            loadYouTubeAuthState();
+            renderSuggestModels();
             
         } catch (err) {
             console.error('Failed to load config:', err);
@@ -166,6 +170,27 @@ document.addEventListener('DOMContentLoaded', () => {
         input.value = '';
     }
 
+    // Model aliases each CLI accepts; the input stays free-form for anything newer.
+    const SUGGEST_MODELS = {
+        claude: ['opus', 'sonnet', 'haiku', 'fable'],
+        codex: ['gpt-6-astra'],
+    };
+
+    function renderSuggestModels() {
+        const agent = document.getElementById('config-suggestAgent')?.value;
+        const list = document.getElementById('suggest-models');
+        if (!list) return;
+        list.replaceChildren(...(SUGGEST_MODELS[agent] || []).map(m => Object.assign(document.createElement('option'), { value: m })));
+    }
+
+    document.getElementById('config-suggestAgent')?.addEventListener('change', () => {
+        const model = document.getElementById('config-suggestModel');
+        const known = Object.values(SUGGEST_MODELS).flat();
+        // A model from the other CLI would just fail; fall back to the new CLI's default.
+        if (known.includes(model.value)) model.value = '';
+        renderSuggestModels();
+    });
+
     // Volume slider sync
     const volSlider = document.getElementById('config-audioVolume');
     if(volSlider) {
@@ -196,8 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target.id !== 'config-form') return;
         if (event.detail.successful) {
             showToast(document.getElementById('toast').innerText || 'Configuration Saved!');
-            saveTwitchSecret()
-                .catch(err => alert('Failed to save Twitch client secret: ' + err.message))
+            Promise.all([
+                saveTwitchSecret().catch(err => alert('Failed to save Twitch client secret: ' + err.message)),
+                saveYouTubeCredentials({ skipIfEmpty: true }).catch(err => alert('Failed to save YouTube credentials: ' + err.message)),
+            ])
                 .finally(loadConfig);
         } else {
             alert(event.detail.xhr.responseText || 'Failed to save config');
@@ -278,6 +305,34 @@ document.addEventListener('DOMContentLoaded', () => {
         testRecentEventsBtn.addEventListener('click', () => testWidget('recent', 'Recent event test sent.'));
     }
 
+    const spinRouletteBtn = document.getElementById('spinRouletteBtn');
+    if (spinRouletteBtn) {
+        spinRouletteBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/api/widgets/roulette/spin', { method: 'POST' });
+                if (!res.ok) throw new Error(await res.text());
+                showToast('Roulette spinning.');
+            } catch (err) {
+                alert(err.message || 'Error spinning roulette');
+            }
+        });
+    }
+
+    const testAchievementBtn = document.getElementById('testAchievementBtn');
+    if (testAchievementBtn) {
+        testAchievementBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/api/widgets/achievements/test', { method: 'POST' });
+                if (!res.ok) throw new Error(await res.text());
+                const body = await res.json();
+                const name = body.event?.names?.english || body.event?.apiName || '';
+                showToast(name ? `Achievement test: ${name}` : 'Achievement test sent.');
+            } catch (err) {
+                alert(err.message || 'Error sending achievement test');
+            }
+        });
+    }
+
     const addCustomWidgetBtn = document.getElementById('addCustomWidgetBtn');
     if (addCustomWidgetBtn) {
         addCustomWidgetBtn.addEventListener('click', () => {
@@ -330,6 +385,68 @@ document.addEventListener('DOMContentLoaded', () => {
             testWidget('custom', 'Custom widget test sent.', widget?.id || '');
         });
     }
+
+    // YouTube OAuth: credentials live in the secrets table; the secret is write-only.
+    async function loadYouTubeAuthState() {
+        try {
+            const status = await (await fetch('/api/auth/youtube/status')).json();
+            document.getElementById('youtubeClientId').value = status.clientId || '';
+            document.getElementById('youtubeClientSecret').placeholder = status.hasClientSecret
+                ? 'Saved (paste a new one to replace)'
+                : 'Google Cloud → Credentials → Desktop app';
+            document.getElementById('youtubeAuthStatus').innerText = status.authenticated
+                ? `Connected${status.channel ? ' as ' + status.channel : ''}.`
+                : 'Not connected.';
+            return status;
+        } catch (err) {
+            console.error('Failed to load YouTube auth state:', err);
+            return null;
+        }
+    }
+
+    async function saveYouTubeCredentials({ skipIfEmpty = false } = {}) {
+        const secretInput = document.getElementById('youtubeClientSecret');
+        const idInput = document.getElementById('youtubeClientId');
+        // An empty Client ID here usually means the status hasn't loaded; don't wipe the saved one.
+        if (skipIfEmpty && !idInput.value.trim()) return;
+        const res = await fetch('/api/auth/youtube/credentials', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                clientId: document.getElementById('youtubeClientId').value.trim(),
+                clientSecret: secretInput.value.trim(),
+            }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        secretInput.value = '';
+    }
+
+    let youtubePollInterval = null;
+    document.getElementById('connectYouTubeBtn').addEventListener('click', async () => {
+        try {
+            await saveYouTubeCredentials();
+            const status = await loadYouTubeAuthState();
+            if (!status?.clientId || !status?.hasClientSecret) {
+                alert('Paste the OAuth Client ID and Client Secret first.');
+                return;
+            }
+        } catch (err) {
+            alert('Failed to save YouTube credentials: ' + err.message);
+            return;
+        }
+        window.open('/api/auth/youtube/start', '_blank');
+        clearInterval(youtubePollInterval);
+        const startedAt = Date.now();
+        youtubePollInterval = setInterval(async () => {
+            const status = await loadYouTubeAuthState();
+            if (status?.authenticated) {
+                clearInterval(youtubePollInterval);
+                showToast('YouTube connected!', 5000);
+            } else if (Date.now() - startedAt > 5 * 60 * 1000) {
+                clearInterval(youtubePollInterval);
+            }
+        }, 2000);
+    });
 
     // Twitch Device Auth Flow
     let twitchPollInterval = null;

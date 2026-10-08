@@ -11,6 +11,14 @@ const allowedPlatforms = allowedPlatformsCtx ? allowedPlatformsCtx.split(',') : 
 // ?theme=skyline fuerza un tema en esta fuente de OBS sin cambiar la config global
 const urlTheme = (urlParams.get('theme') || '').replace(/[^a-z0-9-]/gi, '');
 const activeTheme = () => urlTheme || currentConfig.chatTheme;
+// ?bg=dark pone fondo oscuro para leer el chat fuera de OBS; ?hideAfter=0 evita que se borren los mensajes
+if (urlParams.get('bg') === 'dark') document.documentElement.classList.add('bg-dark');
+const urlHideAfter = parseInt(urlParams.get('hideAfter'));
+
+// Names and amounts come from viewers (TikTok/YouTube display names are free text).
+function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 
 const platformColors = {
     twitch: '#9146FF',
@@ -35,6 +43,7 @@ let currentConfig = {
 
 function applyConfig(config) {
     currentConfig = { ...currentConfig, ...config };
+    if (!Number.isNaN(urlHideAfter)) currentConfig.chatHideAfter = urlHideAfter;
     
     // Apply Font Size
     document.documentElement.style.setProperty('--chat-font-size', `${currentConfig.chatFontSize}px`);
@@ -104,7 +113,7 @@ function createMessageElement(msg) {
     const paidBanner = ['superchat', 'supersticker', 'membership'].includes(kind) ? `
         <div class="paid-banner">
             <span class="paid-kind">${kind === 'superchat' ? 'Super Chat' : kind === 'supersticker' ? 'Super Sticker' : 'Membership'}</span>
-            ${msg.amountText ? `<span class="paid-amount">${msg.amountText}</span>` : ''}
+            ${msg.amountText ? `<span class="paid-amount">${escapeHTML(msg.amountText)}</span>` : ''}
         </div>
     ` : '';
     const stickerHtml = kind === 'supersticker' && msg.stickerUrl ? `<img class="paid-sticker" src="${msg.stickerUrl}" alt="Super Sticker">` : '';
@@ -114,7 +123,7 @@ function createMessageElement(msg) {
         <div class="message-header">
             ${platformIconHtml}
             ${badgesHtml}
-            <span class="username" style="color: ${color}">${msg.displayName}</span>
+            <span class="username" style="color: ${color}">${escapeHTML(msg.displayName)}</span>
         </div>
         ${stickerHtml}
         <div class="message-content"></div>

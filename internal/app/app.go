@@ -38,6 +38,13 @@ type App struct {
 	cfg      AppConfig
 	adapters []Adapter
 	cancel   context.CancelFunc
+
+	achievements *AchievementsAdapter
+
+	ytOAuthStates sync.Map // OAuth state -> youtubeOAuthState
+	ytTokenMu     sync.Mutex
+	ytPendingMu   sync.Mutex
+	ytPending     *youtubePending
 }
 
 func Serve(ctx context.Context, opts Options) error {
@@ -100,12 +107,22 @@ func (a *App) routes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/auth/twitch/device-code", a.handleTwitchDeviceCode)
 	mux.HandleFunc("/api/auth/twitch/status", a.handleTwitchStatus)
 	mux.HandleFunc("/api/auth/twitch/secret", a.handleTwitchSecret)
+	mux.HandleFunc("/api/auth/youtube/credentials", a.handleYouTubeCredentials)
+	mux.HandleFunc("/api/auth/youtube/status", a.handleYouTubeStatus)
+	mux.HandleFunc("/api/auth/youtube/start", a.handleYouTubeAuthStart)
+	mux.HandleFunc("/api/auth/youtube/callback", a.handleYouTubeAuthCallback)
+	mux.HandleFunc("/api/stream-info", a.handleStreamInfo)
+	mux.HandleFunc("/api/stream-info/games", a.handleStreamInfoGames)
+	mux.HandleFunc("/api/stream-info/suggest", a.handleStreamInfoSuggest)
 	mux.HandleFunc("/api/alerts/test", a.handleAlertTest)
 	mux.HandleFunc("/api/tts/test", a.handleTTSTest)
 	mux.HandleFunc("/api/chat/test", a.handleChatTest)
 	mux.HandleFunc("/api/widgets/state", a.handleWidgetState)
 	mux.HandleFunc("/api/widgets/test", a.handleWidgetTest)
 	mux.HandleFunc("/api/widgets/support-goal/reset", a.handleSupportGoalReset)
+	mux.HandleFunc("/api/widgets/roulette/spin", a.handleRouletteSpin)
+	mux.HandleFunc("/api/achievements", a.handleAchievements)
+	mux.HandleFunc("/api/widgets/achievements/test", a.handleAchievementsTest)
 	mux.HandleFunc("/ws/chat", a.hub.Serve("chat"))
 	mux.HandleFunc("/ws/alerts", a.hub.Serve("alerts"))
 	mux.HandleFunc("/ws/audio", a.hub.Serve("audio"))
@@ -119,6 +136,9 @@ func (a *App) routes(mux *http.ServeMux) {
 	mux.Handle("/overlay/widgets/support-goal/", http.StripPrefix("/overlay/widgets/support-goal/", http.FileServer(http.FS(assets.SupportGoalAssets()))))
 	mux.Handle("/overlay/widgets/recent-events/", http.StripPrefix("/overlay/widgets/recent-events/", http.FileServer(http.FS(assets.RecentEventsAssets()))))
 	mux.Handle("/overlay/widgets/custom/", http.StripPrefix("/overlay/widgets/custom/", http.FileServer(http.FS(assets.CustomWidgetAssets()))))
+	mux.Handle("/overlay/widgets/roulette/", http.StripPrefix("/overlay/widgets/roulette/", http.FileServer(http.FS(assets.RouletteAssets()))))
+	mux.Handle("/overlay/widgets/achievements/", http.StripPrefix("/overlay/widgets/achievements/", http.FileServer(http.FS(assets.AchievementsAssets()))))
+	mux.Handle("/dock/stream-info/", http.StripPrefix("/dock/stream-info/", http.FileServer(http.FS(assets.StreamInfoDockAssets()))))
 	mux.Handle("/audio/", http.StripPrefix("/audio/", http.FileServer(http.FS(assets.AudioAssets()))))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
@@ -243,7 +263,7 @@ func (a *App) handleAlertTest(w http.ResponseWriter, r *http.Request) {
 	if body.Type == "" {
 		body.Type = "follow"
 	}
-	evt := Event{Type: body.Type, Platform: PlatformTwitch, User: "TestUser", Amount: 100, Count: 5, Tier: 1, Message: "Este es un mensaje de prueba larguito.", GiftName: "Sub Tier 1"}
+	evt := Event{Type: body.Type, Platform: PlatformTwitch, User: "TestUser", Amount: 100, Count: 5, Tier: 1, Message: "Este es un mensaje de prueba larguito.", GiftName: "Sub Tier 1", Viewers: 42}
 	cfg := a.config()
 	if body.AlertConfig != nil {
 		if cfg.AlertsConfig == nil {
@@ -337,6 +357,15 @@ func (a *App) handleSupportGoalReset(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, state)
 }
 
+func (a *App) handleRouletteSpin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	a.hub.Publish("widgets", "roulette_spin", map[string]any{"at": time.Now().UnixMilli()})
+	writeJSON(w, map[string]any{"success": true})
+}
+
 func (a *App) handleTwitchDeviceCode(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -348,7 +377,7 @@ func (a *App) handleTwitchDeviceCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auth := NewTwitchAuth(a.store, cfg.TwitchClientID, a.logger)
-	code, err := auth.RequestDeviceCode(r.Context(), []string{"chat:read", "channel:read:subscriptions", "channel:read:redemptions", "bits:read", "moderator:read:followers"})
+	code, err := auth.RequestDeviceCode(r.Context(), []string{"chat:read", "channel:read:subscriptions", "channel:read:redemptions", "bits:read", "moderator:read:followers", twitchBroadcastScope})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
@@ -691,6 +720,8 @@ func applyConfigPatch(cfg *AppConfig, patch map[string]json.RawMessage) error {
 		{"youtubeChannelId", &cfg.YouTubeID},
 		{"kickUsername", &cfg.KickUsername},
 		{"tiktokUsername", &cfg.TikTokUsername},
+		{"suggestAgent", &cfg.SuggestAgent},
+		{"suggestModel", &cfg.SuggestModel},
 		{"ttsEnabled", &cfg.TTSEnabled},
 		{"ttsVoice", &cfg.TTSVoice},
 		{"ttsMinBits", &cfg.TTSMinBits},
@@ -712,6 +743,7 @@ func applyConfigPatch(cfg *AppConfig, patch map[string]json.RawMessage) error {
 		{"chatAnimations", &cfg.ChatAnimations},
 		{"alertsConfig", &cfg.AlertsConfig},
 		{"widgetsConfig", &cfg.WidgetsConfig},
+		{"achievementsConfig", &cfg.Achievements},
 	}
 	for _, field := range fields {
 		if err := set(field.key, field.dest); err != nil {

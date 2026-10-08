@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raikiri Achievements</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,400&family=Pixelify+Sans:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="achievements.css">
+</head>
+<body>
+    <main id="stage" class="stage">
+        <article id="toast" class="toast" hidden>
+            <div class="toast-sheen"></div>
+            <figure class="toast-icon">
+                <img id="icon" alt="">
+            </figure>
+            <div class="toast-text">
+                <span id="label" class="toast-label"></span>
+                <h1 id="name" class="toast-name"></h1>
+                <p id="desc" class="toast-desc"></p>
+            </div>
+            <div class="toast-side">
+                <span id="count" class="toast-count"></span>
+                <span id="game" class="toast-game"></span>
+            </div>
+        </article>
+    </main>
+    <audio id="chime" src="chime.ogg" preload="auto"></audio>
+    <script type="module" src="achievements.js"></script>
+</body>
+</html>

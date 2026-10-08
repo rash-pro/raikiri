@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 	"unicode/utf8"
@@ -81,7 +82,12 @@ func (t *TwitchAuth) PollForToken(ctx context.Context, deviceCode string, interv
 			return TokenData{}, ctx.Err()
 		case <-ticker.C:
 		}
-		form := "client_id=" + t.clientID + "&device_code=" + deviceCode + "&grant_type=urn:ietf:params:oauth:grant-type:device_code"
+		values := url.Values{"client_id": {t.clientID}, "device_code": {deviceCode}, "grant_type": {"urn:ietf:params:oauth:grant-type:device_code"}}
+		// Same as RefreshToken: confidential apps need the secret, public apps must not send one.
+		if secret, err := t.store.Secret(ctx, twitchClientSecretKey); err == nil && secret != "" {
+			values.Set("client_secret", secret)
+		}
+		form := values.Encode()
 		req, _ := http.NewRequestWithContext(ctx, http.MethodPost, twitchTokenURL, strings.NewReader(form))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		res, err := http.DefaultClient.Do(req)
@@ -168,7 +174,12 @@ func (t *TwitchAuth) RefreshToken(ctx context.Context, refreshToken string) (Tok
 	return token, t.store.SaveToken(ctx, "twitch", token)
 }
 
+// Twitch rotates refresh tokens, so concurrent refreshes would race each other into a dead token.
+var twitchRefreshMu sync.Mutex
+
 func GetOrRefreshTwitchToken(ctx context.Context, store *Store, clientID string, logger *slog.Logger) (TokenData, error) {
+	twitchRefreshMu.Lock()
+	defer twitchRefreshMu.Unlock()
 	token, err := store.Token(ctx, "twitch")
 	if err != nil {
 		return TokenData{}, err

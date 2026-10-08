@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Setup · Raikiri</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="guides.css">
+</head>
+<body class="youtube">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.5 5.5v13l10.5-6.5z"/></symbol>
+    <symbol id="i-yt" viewBox="0 0 24 24"><rect x="1" y="4.5" width="22" height="15" rx="4.5" fill="#ff0000"/><path d="M10 8.7v6.6l5.6-3.3z" fill="#fff"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+</svg>
+
+<main class="page">
+    <a class="back" href="/dashboard/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Dashboard</a>
+
+    <header class="hero">
+        <div class="hero-icon"><svg><use href="#i-play"/></svg></div>
+        <div>
+            <h1>Connect YouTube</h1>
+            <p>Create a Google Cloud OAuth client, then sign in from Raikiri.</p>
+        </div>
+    </header>
+    <div class="meta">
+        <span class="chip">About <b>10 min</b></span>
+        <span class="chip">Use the Google account that <b>owns the channel</b></span>
+    </div>
+
+    <!-- 1 -->
+    <section class="step">
+        <div class="step-num">1</div>
+        <h2>In Google Cloud, open the project picker and click <span class="k">New project</span></h2>
+        <div class="step-body">
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b></span></div></div>
+                <div class="pg pg-g">
+                    <div class="g-top">
+                        <span class="g-burger"></span>
+                        <span class="g-logo"><span class="b">G</span><span class="r">o</span><span class="y">o</span><span class="b">g</span><span class="gr">l</span><span class="r">e</span> <span class="c">Cloud</span></span>
+                        <span class="g-picker hl" data-n="1"><i></i>Select a project<span class="caret">&#9660;</span></span>
+                        <span class="g-search"></span>
+                        <i class="g-avatar"></i>
+                    </div>
+                    <div class="g-dim">
+                        <div class="g-dialog" style="max-width:560px">
+                            <div class="row between"><h4>Select a project</h4><span class="m-btn out hl" data-n="2">New project</span></div>
+                            <div class="m-box"><svg><use href="#i-search"/></svg><span class="v ph">Search projects and folders</span></div>
+                            <div class="stack" style="gap:10px;color:#202124">
+                                <span class="skel" style="width:40%"></span>
+                                <span class="skel" style="width:55%"></span>
+                            </div>
+                            <div class="row end"><span class="m-btn txt">Cancel</span><span class="m-btn txt" style="opacity:.45">Open</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="step">
+        <div class="step-num">2</div>
+        <h2>Name it <span class="k">raikiri</span>, click <span class="k">Create</span>, then select it</h2>
+        <div class="step-body">
+            <div class="pair">
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/projectcreate</span></div></div>
+                    <div class="pg pg-g">
+                        <div class="g-main">
+                            <h3>New Project</h3>
+                            <div class="m-field">
+                                <span class="m-label">Project name *</span>
+                                <div class="m-box hl" data-n="1"><span class="v">raikiri</span></div>
+                                <span class="g-sub">Project ID: raikiri-473512</span>
+                            </div>
+                            <div class="m-field">
+                                <span class="m-label">Location *</span>
+                                <div class="row"><div class="m-box grow"><span class="v">No organization</span></div><span class="m-btn txt">Browse</span></div>
+                            </div>
+                            <div class="row"><span class="m-btn pri hl" data-n="2">Create</span><span class="m-btn txt">Cancel</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/home</span></div></div>
+                    <div class="pg pg-g fill">
+                        <div class="g-top">
+                            <span class="g-logo"><span class="b">G</span><span class="r">o</span><span class="y">o</span><span class="b">g</span><span class="gr">l</span><span class="r">e</span> <span class="c">Cloud</span></span>
+                            <i class="g-avatar"></i>
+                        </div>
+                        <div class="g-dim">
+                            <div class="g-dialog">
+                                <h4>Notifications</h4>
+                                <div class="row" style="align-items:flex-start;flex-wrap:nowrap">
+                                    <svg viewBox="0 0 24 24" style="flex:none;width:20px;height:20px;fill:none;stroke:#1e8e3e;stroke-width:2.4"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg>
+                                    <div class="stack" style="gap:6px">
+                                        <div><b style="font-weight:500">Create Project: raikiri</b><div class="g-sub">Just now</div></div>
+                                        <div><span class="m-btn txt hl" data-n="3" style="padding:0 8px;margin-left:-8px">Select project</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="step">
+        <div class="step-num">3</div>
+        <h2>Go to APIs &amp; Services → Library and enable <span class="k">YouTube Data API v3</span></h2>
+        <div class="step-body">
+            <div class="pair">
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/apis/library</span></div></div>
+                    <div class="pg pg-g">
+                        <div class="g-main">
+                            <h3>API Library</h3>
+                            <div class="m-box hl" data-n="1" style="border-radius:22px;background:#f1f3f4;border-color:transparent"><svg><use href="#i-search"/></svg><span class="v">YouTube Data API v3</span></div>
+                            <div class="g-card hl" data-n="2">
+                                <span class="ic"><svg><use href="#i-yt"/></svg></span>
+                                <div class="grow"><b>YouTube Data API v3</b><span class="g-sub">Google Enterprise API</span></div>
+                            </div>
+                            <div class="g-card" style="opacity:.5">
+                                <span class="ic"><svg><use href="#i-yt"/></svg></span>
+                                <div class="grow stack" style="gap:8px;color:#202124"><span class="skel" style="width:70%"></span><span class="skel" style="width:45%"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/apis/library/youtube.googleapis.com</span></div></div>
+                    <div class="pg pg-g">
+                        <div class="g-main">
+                            <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
+                                <span class="g-card" style="padding:10px;border:0"><span class="ic" style="width:52px;height:52px"><svg style="width:34px;height:34px"><use href="#i-yt"/></svg></span></span>
+                                <div class="stack" style="gap:4px;padding-top:6px">
+                                    <h3 style="font-size:19px">YouTube Data API v3</h3>
+                                    <span class="g-sub">Google Enterprise API</span>
+                                </div>
+                            </div>
+                            <div class="stack" style="gap:8px;color:#202124"><span class="skel" style="width:92%"></span><span class="skel" style="width:78%"></span></div>
+                            <div class="row"><span class="m-btn pri hl" data-n="3">Enable</span><span class="m-btn out">Try this API</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="step">
+        <div class="step-num">4</div>
+        <h2>Open Google Auth Platform, click <span class="k">Get started</span> and complete the form
+            <span class="sub">APIs &amp; Services → OAuth consent screen leads here too.</span></h2>
+        <div class="step-body">
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/auth/overview</span></div></div>
+                <div class="pg pg-g">
+                    <div class="g-shell">
+                        <div class="g-side"><div class="t">Google Auth Platform</div><div class="on">Overview</div><div>Branding</div><div>Audience</div><div>Clients</div><div>Data Access</div><div>Verification Center</div></div>
+                        <div class="g-main" style="justify-items:start">
+                            <h3>Google Auth Platform not configured yet</h3>
+                            <span class="m-btn pri hl" data-n="1">Get started</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/auth/overview/create</span></div></div>
+                <div class="pg pg-g">
+                    <div class="g-shell">
+                        <div class="g-side"><div class="t">Google Auth Platform</div><div class="on">Overview</div><div>Branding</div><div>Audience</div><div>Clients</div><div>Data Access</div><div>Verification Center</div></div>
+                        <div class="g-main">
+                            <h3>Project configuration</h3>
+                            <div class="g-wizard">
+                                <div class="g-ws">
+                                    <span class="n">1</span><span class="t">App Information</span>
+                                    <div class="stack">
+                                        <div class="m-field"><span class="m-label">App name *</span><div class="m-box hl" data-n="2"><span class="v">Raikiri</span></div></div>
+                                        <div class="m-field"><span class="m-label">User support email *</span><div class="m-box hl" data-n="3"><span class="v">you@gmail.com</span><span class="caret">&#9660;</span></div></div>
+                                    </div>
+                                </div>
+                                <div class="g-ws">
+                                    <span class="n">2</span><span class="t">Audience</span>
+                                    <div class="stack" style="gap:10px">
+                                        <span class="m-radio"><i></i><span>Internal</span></span>
+                                        <span class="m-radio on hl" data-n="4" style="border-radius:6px;padding:3px 8px 3px 4px;justify-self:start"><i></i><span>External</span></span>
+                                    </div>
+                                </div>
+                                <div class="g-ws">
+                                    <span class="n">3</span><span class="t">Contact Information</span>
+                                    <div class="stack">
+                                        <div class="m-field"><span class="m-label">Email addresses *</span><div class="m-box hl" data-n="5"><span class="v">you@gmail.com</span></div></div>
+                                    </div>
+                                </div>
+                                <div class="g-ws">
+                                    <span class="n">4</span><span class="t">Finish</span>
+                                    <div class="stack">
+                                        <span class="m-check on hl" data-n="6" style="border-radius:6px;padding:3px 8px 3px 4px;justify-self:start"><i></i><span>I agree to the Google API Services: User Data Policy.</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row"><span class="m-btn pri hl" data-n="7">Create</span><span class="m-btn txt">Cancel</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="step">
+        <div class="step-num">5</div>
+        <h2>Under Audience, add the channel's Google account as a test user</h2>
+        <div class="step-body">
+            <div class="pair">
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/auth/audience</span></div></div>
+                    <div class="pg pg-g">
+                        <div class="g-main">
+                            <h3>Audience</h3>
+                            <div class="stack" style="gap:4px">
+                                <h5>Publishing status</h5>
+                                <span class="g-sub">Testing</span>
+                            </div>
+                            <div class="stack" style="gap:4px">
+                                <h5>User type</h5>
+                                <span class="g-sub">External</span>
+                            </div>
+                            <div class="stack" style="gap:8px">
+                                <h5>Test users</h5>
+                                <div><span class="m-btn txt hl" data-n="1" style="padding:0 10px">+ Add users</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/auth/audience</span></div></div>
+                    <div class="pg pg-g g-dim" style="display:grid;align-content:center">
+                        <div class="g-dialog">
+                            <h4>Add users</h4>
+                            <div class="m-box hl" data-n="2"><span class="v">you@gmail.com</span></div>
+                            <div class="row end"><span class="m-btn txt">Cancel</span><span class="m-btn pri hl" data-n="3">Save</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="note"><svg><use href="#i-info"/></svg><div>While the app is in <b>Testing</b>, only test users can sign in to it.</div></div>
+        </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="step">
+        <div class="step-num">6</div>
+        <h2>Under Clients, create a <span class="k">Desktop app</span> client and copy its ID and secret</h2>
+        <div class="step-body">
+            <div class="pair">
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/auth/clients/create</span></div></div>
+                    <div class="pg pg-g">
+                        <div class="g-main">
+                            <h3>Create OAuth client ID</h3>
+                            <div class="m-field"><span class="m-label">Application type *</span><div class="m-box hl" data-n="1"><span class="v">Desktop app</span><span class="caret">&#9660;</span></div></div>
+                            <div class="m-field"><span class="m-label">Name *</span><div class="m-box hl" data-n="2"><span class="v">Raikiri</span></div></div>
+                            <div class="row"><span class="m-btn pri hl" data-n="3">Create</span><span class="m-btn txt">Cancel</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>console.cloud.google.com</b>/auth/clients</span></div></div>
+                    <div class="pg pg-g g-dim" style="display:grid;align-content:center">
+                        <div class="g-dialog">
+                            <h4>OAuth client created</h4>
+                            <div class="g-secret">
+                                <span class="m-label">Client ID</span>
+                                <div class="m-box hl" data-n="4"><span class="v mono">80412…apps.googleusercontent.com</span><svg><use href="#i-copy"/></svg></div>
+                            </div>
+                            <div class="g-secret">
+                                <span class="m-label">Client secret</span>
+                                <div class="m-box hl" data-n="5"><span class="v mono">GOCSPX-4kQ9…</span><svg><use href="#i-copy"/></svg></div>
+                            </div>
+                            <div class="row between"><span class="m-btn txt" style="margin-left:-8px">Download JSON</span><span class="m-btn txt">OK</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="note warn"><svg><use href="#i-warn"/></svg><div>Copy the secret before closing the dialog (or click <b>Download JSON</b>): Google won't show it again.</div></div>
+        </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="step">
+        <div class="step-num">7</div>
+        <h2>In Raikiri, fill in the YouTube Live card, click <span class="k">Save Configuration</span>, then <span class="k">Connect YouTube</span></h2>
+        <div class="step-body">
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><span><b>localhost:30001</b>/dashboard/</span></div></div>
+                <div class="pg pg-rk">
+                    <div class="rk-shell">
+                        <div class="rk-side">
+                            <div class="rk-logo"><i></i>Raikiri</div>
+                            <div class="rk-nav on">Platforms Connect</div>
+                            <div class="rk-nav">Audio &amp; TTS</div>
+                            <div class="rk-nav">Overlays</div>
+                            <div class="rk-nav">Widgets</div>
+                        </div>
+                        <div class="rk-main">
+                            <div class="rk-top">
+                                <div><h3>Platforms Setup</h3><p>Connect your streaming accounts for real-time events.</p></div>
+                                <span class="m-btn save hl" data-n="4">Save Configuration</span>
+                            </div>
+                            <div class="rk-card">
+                                <div class="rk-card-h"><span class="rk-ico yt">Yt</span><h4>YouTube Live</h4></div>
+                                <div class="rk-card-b">
+                                    <div class="m-field">
+                                        <span class="m-label">Channel ID or Video ID</span>
+                                        <div class="m-box hl" data-n="1"><span class="v">@yourhandle</span></div>
+                                    </div>
+                                    <div class="m-field">
+                                        <span class="m-label">OAuth Client ID</span>
+                                        <div class="m-box hl" data-n="2"><span class="v mono">80412…apps.googleusercontent.com</span></div>
+                                    </div>
+                                    <div class="m-field">
+                                        <span class="m-label">OAuth Client Secret</span>
+                                        <div class="m-box hl" data-n="3"><span class="v dots-pw">•••••••••••••••••••••••••••••••••••</span></div>
+                                    </div>
+                                    <div><span class="m-btn yt hl" data-n="5">Connect YouTube</span></div>
+                                    <span class="rk-status">Not connected.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="note"><svg><use href="#i-info"/></svg><div>Raikiri receives the sign-in at <code>http://127.0.0.1:30001/api/auth/youtube/callback</code>. Desktop app clients allow loopback addresses automatically, so there's no redirect URI to add in Google Cloud.</div></div>
+        </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="step">
+        <div class="step-num">8</div>
+        <h2>Pick the channel's account, click <span class="k">Continue</span> past the warning and allow access</h2>
+        <div class="step-body">
+            <div class="trio">
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>accounts.google.com</b>/o/oauth2/v2/auth</span></div></div>
+                    <div class="pg pg-g g-acct">
+                        <span class="g-logo"><span class="b">G</span><span class="r">o</span><span class="y">o</span><span class="b">g</span><span class="gr">l</span><span class="r">e</span></span>
+                        <h4>Choose an account</h4>
+                        <p>to continue to Raikiri</p>
+                        <div>
+                            <div class="g-person hl" data-n="1" style="border-radius:6px"><i></i><div><b>Your Name</b><small>you@gmail.com</small></div></div>
+                            <div class="g-person"><i class="alt"></i><div><b>Use another account</b></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>accounts.google.com</b>/signin/oauth/warning</span></div></div>
+                    <div class="pg pg-g g-acct">
+                        <svg class="g-warnicon" viewBox="0 0 24 24" fill="none" stroke="#d93025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+                        <h4>Google hasn’t verified this app</h4>
+                        <p>The app is requesting access to sensitive info in your Google Account.</p>
+                        <div class="row between">
+                            <span class="m-btn txt hl" data-n="2">Continue</span>
+                            <span class="m-btn pri">Back to safety</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="win">
+                    <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><svg><use href="#i-lock"/></svg><span><b>accounts.google.com</b>/signin/oauth/v2/consent</span></div></div>
+                    <div class="pg pg-g g-acct">
+                        <span class="g-logo"><span class="b">G</span><span class="r">o</span><span class="y">o</span><span class="b">g</span><span class="gr">l</span><span class="r">e</span></span>
+                        <h4>Raikiri wants access to your Google Account</h4>
+                        <span class="m-check on"><i></i><span style="font-size:12px">Manage your YouTube account</span></span>
+                        <div class="row end">
+                            <span class="m-btn out">Cancel</span>
+                            <span class="m-btn pri hl" data-n="3">Continue</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="win">
+                <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><span><b>localhost:30001</b>/dashboard/</span></div></div>
+                <div class="pg pg-rk">
+                    <div class="rk-main">
+                        <div class="rk-card">
+                            <div class="rk-card-h"><span class="rk-ico yt">Yt</span><h4>YouTube Live</h4></div>
+                            <div class="rk-card-b">
+                                <div><span class="m-btn yt">Connect YouTube</span></div>
+                                <div><span class="rk-status ok hl done" style="border-radius:4px;padding:2px 6px;margin-left:-6px">Connected as YourChannel.</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="note"><svg><use href="#i-info"/></svg><div>The unverified-app warning is expected: the app is yours and only your test users can use it.</div></div>
+        </div>
+    </section>
+
+    <section class="finish">
+        <h2>Good to know</h2>
+        <div class="note warn"><svg><use href="#i-calendar"/></svg><div><b>Reconnect weekly.</b> While the app's publishing status is Testing, Google expires the sign-in after 7 days and the YouTube card shows <i>Not connected.</i> Click Connect YouTube again. Publishing the app to production avoids this, but requires a homepage and privacy policy on a verified domain.</div></div>
+        <div class="note"><svg><use href="#i-info"/></svg><div>The stream-info dock sends YouTube the <b>title</b> and <b>tags</b> (plus the Gaming category). The specific game can't be set through the YouTube API.</div></div>
+    </section>
+</main>
+</body>
+</html>

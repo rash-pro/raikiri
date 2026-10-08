@@ -160,6 +160,22 @@ type AppConfig struct {
 	ChatAnimations bool                   `json:"chatAnimations"`
 	AlertsConfig   map[string]AlertConfig `json:"alertsConfig"`
 	WidgetsConfig  WidgetsConfig          `json:"widgetsConfig"`
+	Achievements   AchievementsConfig     `json:"achievementsConfig"`
+
+	// CLI used for stream title/tag suggestions ("claude" or "codex"); empty model = the CLI's default.
+	SuggestAgent string `json:"suggestAgent"`
+	SuggestModel string `json:"suggestModel"`
+}
+
+// AchievementsConfig drives the local Steam achievement watcher. Empty values
+// are auto-detected from the Steam client files.
+type AchievementsConfig struct {
+	Enabled   bool              `json:"enabled"`
+	SteamRoot string            `json:"steamRoot"`
+	AccountID uint32            `json:"accountId"`
+	FFNxApps  []uint32          `json:"ffnxApps"`  // apps whose <install dir>/FFNx.log is tailed
+	FFNxLogs  map[string]uint32 `json:"ffnxLogs"`  // explicit log path -> appid
+	TestAppID uint32            `json:"testAppId"` // app used by the dashboard Test button
 }
 
 func DefaultConfig() AppConfig {
@@ -168,6 +184,8 @@ func DefaultConfig() AppConfig {
 		AudioMode: "websocket", AudioVol: 50,
 		TTSCmdPrefix: "!voz", TTSBlockedWords: defaultTTSBlockedWords(), TTSCmdMod: true, TTSCmdHost: true,
 		ChatTheme: "glassmorphism", ChatFontSize: 15, ChatHideAfter: 30, ChatAnimations: true,
+		SuggestAgent: "claude", SuggestModel: "opus",
+		Achievements: DefaultAchievementsConfig(),
 		WidgetsConfig: WidgetsConfig{
 			SupportGoal: SupportGoalConfig{
 				Enabled: true, Title: "Support Goal", TargetAmount: 100, Currency: "USD",

@@ -32,6 +32,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
                     Widgets
                 </a>
+                <a href="#assistant" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"></path></svg>
+                    Assistant
+                </a>
             </nav>
         </aside>
         
@@ -55,6 +59,7 @@
                         <div class="card-header">
                             <div class="platform-icon">Tw</div>
                             <h3>Twitch Auth</h3>
+                            <a class="guide-link" href="guides/twitch.html" target="_blank" rel="noopener">Setup guide <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></a>
                         </div>
                         <div class="card-body">
                             <div class="form-group">
@@ -83,12 +88,25 @@
                         <div class="card-header">
                             <div class="platform-icon">Yt</div>
                             <h3>YouTube Live</h3>
+                            <a class="guide-link" href="guides/youtube.html" target="_blank" rel="noopener">Setup guide <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></a>
                         </div>
                         <div class="card-body">
                             <div class="form-group">
                                 <label>Channel ID or Video ID</label>
                                 <input type="text" id="config-youtubeChannelId" placeholder="UCxxxxxx / Video ID">
                             </div>
+                            <div class="form-group">
+                                <label>OAuth Client ID</label>
+                                <input type="text" id="youtubeClientId" autocomplete="off" placeholder="xxxx.apps.googleusercontent.com">
+                            </div>
+                            <div class="form-group">
+                                <label>OAuth Client Secret</label>
+                                <input type="password" id="youtubeClientSecret" autocomplete="off" placeholder="Google Cloud → Credentials → Desktop app">
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-youtube" id="connectYouTubeBtn" type="button">Connect YouTube</button>
+                            </div>
+                            <small class="field-note" id="youtubeAuthStatus"></small>
                         </div>
                     </div>
 
@@ -287,6 +305,14 @@
                                 <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/alerts/')">Copy</button>
                             </div>
                             
+                            <div class="url-copy-box">
+                                <div>
+                                    <h4>Stream Info (OBS Custom Browser Dock)</h4>
+                                    <span class="url">http://localhost:30001/dock/stream-info/</span>
+                                </div>
+                                <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/dock/stream-info/')">Copy</button>
+                            </div>
+
                             <div class="url-copy-box">
                                 <div>
                                     <h4>Audio Output (OBS Browser Source)</h4>
@@ -522,6 +548,42 @@
 
                     <div class="card">
                         <div class="card-header">
+                            <h3>Final Fantasy Roulette</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="url-copy-box">
+                                <div>
+                                    <h4>Roulette Widget</h4>
+                                    <span class="url">http://localhost:30001/overlay/widgets/roulette/</span>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/widgets/roulette/')">Copy</button>
+                                    <button class="btn btn-secondary" type="button" id="spinRouletteBtn">Spin</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Steam Achievements</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="url-copy-box">
+                                <div>
+                                    <h4>Achievement Toast</h4>
+                                    <span class="url">http://localhost:30001/overlay/widgets/achievements/</span>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/overlay/widgets/achievements/')">Copy</button>
+                                    <button class="btn btn-secondary" type="button" id="testAchievementBtn">Test</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
                             <h3>Custom Widgets</h3>
                             <button class="btn btn-secondary" type="button" id="addCustomWidgetBtn">Add Widget</button>
                             <button class="btn btn-secondary" type="button" id="deleteCustomWidgetBtn">Delete</button>
@@ -628,6 +690,30 @@
                                     <button class="btn btn-secondary" type="button" id="testCustomWidgetBtn">Test</button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="section-assistant" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Stream Title &amp; Tag Ideas</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="config-suggestAgent">Agent CLI</label>
+                                    <select id="config-suggestAgent">
+                                        <option value="claude">Claude Code</option>
+                                        <option value="codex">Codex</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="config-suggestModel">Model</label>
+                                    <input type="text" id="config-suggestModel" list="suggest-models" placeholder="CLI default" autocomplete="off" spellcheck="false">
+                                    <datalist id="suggest-models"></datalist>
+                                </div>
+                            </div>
+                            <span class="field-note">Runs on this machine with the CLI's own login; no API key needed.</span>
                         </div>
                     </div>
                 </section>

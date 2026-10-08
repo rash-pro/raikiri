@@ -51,8 +51,8 @@ func (t *TTSEngine) EnqueueEvent(ctx context.Context, evt Event, cfg AppConfig) 
 		text = "{user}: {message}"
 	}
 	repl := map[string]string{
-		"{user}": fmt.Sprint(evt.User), "{amount}": fmt.Sprint(evt.Amount), "{count}": fmt.Sprint(evt.Count),
-		"{tier}": fmt.Sprint(evt.Tier), "{message}": evt.Message, "{giftName}": evt.GiftName,
+		"{user}": evt.User, "{amount}": firstFilled(evt.Amount, evt.Count, evt.Viewers), "{count}": firstFilled(evt.Count),
+		"{tier}": firstFilled(evt.Tier), "{viewers}": firstFilled(evt.Viewers), "{message}": evt.Message, "{giftName}": evt.GiftName,
 	}
 	for key, val := range repl {
 		text = strings.ReplaceAll(text, key, val)
@@ -62,6 +62,20 @@ func (t *TTSEngine) EnqueueEvent(ctx context.Context, evt Event, cfg AppConfig) 
 		voice = conf.Voice
 	}
 	t.enqueue(ctx, text, voice, cfg)
+}
+
+// firstFilled mirrors the alerts overlay: the first non-empty value wins, and
+// absent fields read as "" rather than "<nil>".
+func firstFilled(values ...any) string {
+	for _, v := range values {
+		if v == nil {
+			continue
+		}
+		if s := fmt.Sprint(v); s != "" {
+			return s
+		}
+	}
+	return ""
 }
 
 func (t *TTSEngine) enqueue(ctx context.Context, text, voice string, cfg AppConfig) {

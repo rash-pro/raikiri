@@ -172,6 +172,22 @@ body {
     padding: 25px;
 }
 
+.guide-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+}
+.guide-link svg { width: 14px; height: 14px; }
+.guide-link:hover { color: var(--text); border-color: var(--primary); }
+
 .platform-icon {
     width: 32px;
     height: 32px;
@@ -230,7 +246,7 @@ input:disabled {
     letter-spacing: 0.5px;
 }
 
-input[type="text"], input[type="number"], input[type="color"], select, textarea {
+input[type="text"], input[type="password"], input[type="number"], input[type="color"], select, textarea {
     width: 100%;
     background: rgba(0,0,0,0.3);
     border: 1px solid var(--border);
@@ -256,7 +272,7 @@ textarea {
     line-height: 1.45;
 }
 
-input[type="text"]:focus, input[type="number"]:focus, input[type="color"]:focus, select:focus, textarea:focus { border-color: var(--primary); }
+input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, input[type="color"]:focus, select:focus, textarea:focus { border-color: var(--primary); }
 
 .form-row {
     display: flex;
@@ -289,6 +305,7 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="color"]:focus,
 .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
 
 .btn-twitch { background: var(--twitch-color); color: white; }
+.btn-youtube { background: var(--youtube-color); color: white; }
 .btn-secondary { background: rgba(255,255,255,0.1); color: var(--text); }
 .btn-secondary:hover { background: rgba(255,255,255,0.15); }
 

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Info</title>
+    <link rel="stylesheet" href="dock.css">
+</head>
+<body>
+    <form id="form" class="dock" autocomplete="off">
+        <section class="ideas">
+            <div class="ideas-bar">
+                <input id="notes" type="text" placeholder="¿Qué toca hoy?" aria-label="Notas para las sugerencias">
+                <button type="button" id="suggest" class="suggest">Sugerir</button>
+            </div>
+            <div id="ideas" class="ideas-panel" hidden>
+                <ul id="idea-titles" class="idea-titles"></ul>
+                <div id="idea-tags-row" class="idea-tags-row">
+                    <div id="idea-tags" class="tag-list"></div>
+                    <button type="button" id="use-tags" class="use-tags">Usar todos</button>
+                </div>
+            </div>
+            <p id="ideas-error" class="result" hidden></p>
+        </section>
+
+        <div class="field">
+            <div class="field-head">
+                <label for="title">Título</label>
+                <span id="count" class="count"></span>
+            </div>
+            <textarea id="title" rows="2" spellcheck="true"></textarea>
+        </div>
+
+        <div class="field">
+            <label for="game-input">Juego</label>
+            <div id="game" class="game">
+                <div id="game-chip" class="game-chip" hidden>
+                    <button type="button" id="game-edit" class="game-edit">
+                        <img id="game-art" alt="">
+                        <span id="game-name"></span>
+                    </button>
+                </div>
+                <input id="game-input" type="text" placeholder="Buscar en Twitch…" role="combobox" aria-expanded="false" aria-controls="game-results">
+                <ul id="game-results" class="game-results" role="listbox" hidden></ul>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="field-head">
+                <label for="tag-input">Tags</label>
+                <span id="tag-count" class="count"></span>
+            </div>
+            <div id="tags" class="tags">
+                <input id="tag-input" type="text" spellcheck="false">
+            </div>
+        </div>
+
+        <div class="targets">
+            <button type="button" class="target" data-platform="twitch" aria-pressed="true">
+                <span class="target-name">Twitch</span>
+                <span class="target-state" data-state="twitch"></span>
+            </button>
+            <button type="button" class="target" data-platform="youtube" aria-pressed="true">
+                <span class="target-name">YouTube</span>
+                <span class="target-state" data-state="youtube"></span>
+            </button>
+        </div>
+
+        <button type="submit" id="apply" class="apply">Actualizar</button>
+        <p id="result" class="result" aria-live="polite"></p>
+
+        <section id="recent-section" class="recent" hidden>
+            <h2>Recientes</h2>
+            <ul id="recent"></ul>
+        </section>
+    </form>
+    <script type="module" src="dock.js"></script>
+</body>
+</html>

@@ -27,9 +27,17 @@ connectEvents('/ws/alerts', {
     }
 });
 
-function formatAlertText(data, template) {
+// Event fields come from viewers (names, cheer/sub/superchat messages), so they are escaped
+// before going into the alert's HTML; only the streamer's own template is trusted markup.
+function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function formatAlertText(raw, template) {
+    const data = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, typeof v === 'string' ? escapeHTML(v) : v]));
     if (template) {
-        return template.replace(/{user}/g, data.user || 'Alguien')
+        return template.replace(/{user}/g, `<span>${data.user || 'Alguien'}</span>`)
+                       .replace(/{viewers}/g, data.viewers || '')
                        .replace(/{amount}/g, data.amount || data.count || data.viewers || '')
                        .replace(/{count}/g, data.count || '')
                        .replace(/{giftName}/g, data.giftName || 'gift')
@@ -86,7 +94,7 @@ async function processQueue() {
         <div class="alert-label"></div>
         ${mediaHtml}
         <div class="alert-title">${titleMsg}</div>
-        ${(!conf?.messageTemplate && data.message) ? `<div class="alert-message">${data.message}</div>` : ''}
+        ${(!conf?.messageTemplate && data.message) ? `<div class="alert-message">${escapeHTML(data.message)}</div>` : ''}
     `;
     
     alertEl.querySelector('.alert-label').textContent = TYPE_LABELS[data.type] || String(data.type || '').toUpperCase();

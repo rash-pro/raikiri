@@ -29,8 +29,14 @@ func (a *App) restartAdapters(ctx context.Context) {
 	if cfg.TikTokUsername != "" {
 		adapters = append(adapters, NewTikTokAdapter(cfg.TikTokUsername, a.logger, a.routeChat, a.routeEvent))
 	}
+	var achievements *AchievementsAdapter
+	if cfg.Achievements.Enabled {
+		achievements = NewAchievementsAdapter(cfg.Achievements, a.logger, a.publishAchievement)
+		adapters = append(adapters, achievements)
+	}
 	a.mu.Lock()
 	a.adapters = adapters
+	a.achievements = achievements
 	a.mu.Unlock()
 	for _, adapter := range adapters {
 		go adapter.Start(runCtx)
