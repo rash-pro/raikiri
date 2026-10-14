@@ -39,6 +39,7 @@ VIAddVersionKey /LANG=0 "LegalCopyright" "rash-pro"
 
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
+!include "Sections.nsh"
 
 !define MUI_ICON "${STAGE}\raikiri.ico"
 !define MUI_UNICON "${STAGE}\raikiri.ico"
@@ -121,6 +122,19 @@ SectionEnd
 Section "$(SecStartupName)" SecStartup
   CreateShortCut "$SMSTARTUP\Raikiri.lnk" "$INSTDIR\raikiri.exe" '${RUN_ARGS}' "$INSTDIR\raikiri.ico"
 SectionEnd
+
+; Keep the user's optional shortcut choices when upgrading an existing install.
+; Fresh installations retain the default component selections.
+Function .onInit
+  ReadRegStr $0 HKCU "Software\Raikiri" "InstallDir"
+  StrCmp $0 "" done
+  IfFileExists "$DESKTOP\Raikiri.lnk" desktop_selected
+    !insertmacro UnselectSection ${SecDesktop}
+  desktop_selected:
+  IfFileExists "$SMSTARTUP\Raikiri.lnk" done
+    !insertmacro UnselectSection ${SecStartup}
+  done:
+FunctionEnd
 
 Section "Uninstall"
   !insertmacro StopRaikiri

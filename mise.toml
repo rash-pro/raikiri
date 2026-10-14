@@ -33,7 +33,7 @@ GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w -H windowsgui -X ma
 rm -f cmd/raikiri/rsrc_windows_amd64.syso
 GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-darwin-arm64 ./cmd/raikiri
 GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$RAIKIRI_VERSION" -o dist/release/raikiri-darwin-amd64 ./cmd/raikiri
-cp internal/tiktoklive/NOTICE dist/release/THIRD_PARTY_NOTICES
+cat internal/tiktoklive/NOTICE third_party/edge-tts/NOTICE third_party/edge-tts/LICENSE third_party/edge-tts/LICENSE.edge-tts-python third_party/edge-tts/COPYING > dist/release/THIRD_PARTY_NOTICES
 """
 
 [tasks.installer]
@@ -51,4 +51,4 @@ run = "cd dist/release && sha256sum * > SHA256SUMS"
 
 [tasks.test]
 description = "Run Go tests"
-run = "go test ./..."
+run = "go test ./... github.com/bytectlgo/edge-tts/pkg/edge_tts"

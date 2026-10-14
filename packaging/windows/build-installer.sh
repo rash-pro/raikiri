@@ -24,7 +24,7 @@ mkdir -p "$stage" dist/release
 cp dist/windows/raikiri.exe "$stage/raikiri.exe"
 cp cmd/raikiri/raikiri.ico "$stage/raikiri.ico"
 cp LICENSE "$stage/LICENSE.txt"
-cp internal/tiktoklive/NOTICE "$stage/THIRD_PARTY_NOTICES.txt"
+cat internal/tiktoklive/NOTICE third_party/edge-tts/NOTICE third_party/edge-tts/LICENSE third_party/edge-tts/LICENSE.edge-tts-python third_party/edge-tts/COPYING > "$stage/THIRD_PARTY_NOTICES.txt"
 
 args=(-V2 -DVERSION="$version" -DSTAGE="$root/$stage" -DOUTFILE="$root/$out" packaging/windows/raikiri.nsi)
 if command -v makensis >/dev/null; then

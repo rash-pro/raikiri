@@ -1,0 +1,92 @@
+package edge_tts
+
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"net/http"
+	"strings"
+	"sync"
+	"time"
+)
+
+// clockSkewSeconds 存储时钟偏差（秒）
+var clockSkewSeconds float64
+
+// clockSkewLock 用于保护 clockSkewSeconds 的并发访问
+var clockSkewLock sync.RWMutex
+
+// adjustClockSkew 调整时钟偏差
+func adjustClockSkew(date string) error {
+	// 解析 RFC 2616 格式的日期
+	serverTime, err := parseRFC2616Date(date)
+	if err != nil {
+		return err
+	}
+
+	// 计算时钟偏差
+	clientTime := time.Now().UTC().Unix()
+	clockSkewLock.Lock()
+	clockSkewSeconds = float64(serverTime - clientTime)
+	clockSkewLock.Unlock()
+
+	return nil
+}
+
+// parseRFC2616Date 解析 RFC 2616 格式的日期
+func parseRFC2616Date(date string) (int64, error) {
+	// 尝试解析 RFC 2616 格式的日期
+	t, err := time.Parse(time.RFC1123, date)
+	if err != nil {
+		return 0, err
+	}
+
+	return t.Unix(), nil
+}
+
+// getUnixTimestamp 获取当前 Unix 时间戳（秒）
+func getUnixTimestamp() int64 {
+	clockSkewLock.RLock()
+	skew := clockSkewSeconds
+	clockSkewLock.RUnlock()
+	return time.Now().UTC().Unix() + int64(skew)
+}
+
+// generateSecMsGec 生成 Sec-MS-GEC token
+func generateSecMsGec() string {
+	return generateSecMsGecV2(getUnixTimestamp())
+}
+
+// handleClientResponseError 处理客户端响应错误
+func handleClientResponseError(resp *http.Response) error {
+	// 获取服务器日期
+	date := resp.Header.Get("Date")
+	if date == "" {
+		return fmt.Errorf("no server date in headers")
+	}
+
+	// 调整时钟偏差
+	return adjustClockSkew(date)
+}
+
+// generateMUID 生成随机 MUID (Microsoft User ID)
+func generateMUID() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return strings.ToUpper(hex.EncodeToString(b))
+}
+
+// headersWithMUID 返回带 MUID Cookie 的 headers
+func headersWithMUID(headers http.Header) http.Header {
+	combined := headers.Clone()
+	combined.Set("Cookie", "muid="+generateMUID()+";")
+	return combined
+}
+
+// dateToString 返回 JavaScript 风格的日期字符串
+// 格式: "Wed Dec 04 2024 10:30:45 GMT+0000 (Coordinated Universal Time)"
+func dateToString() string {
+	now := time.Now().UTC()
+	// JavaScript 风格的日期格式
+	return now.Format("Mon Jan 02 2006 15:04:05") + " GMT+0000 (Coordinated Universal Time)"
+}

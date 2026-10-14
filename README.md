@@ -65,6 +65,8 @@ Run `raikiri-windows-amd64-setup.exe`. It installs for your user only (no admini
 
 Raikiri then runs from a tray icon next to the clock (**Open dashboard**, **Open data folder**, **Quit**) instead of a console window. The dashboard opens by itself on the first run; launching Raikiri again while it is running just opens the dashboard. Settings, tokens, and logs live in `%APPDATA%\Raikiri` (`raikiri.log` there is the place to look when something fails).
 
+To update, run the newer installer over the existing installation. It closes the running Raikiri process, replaces the application, and preserves settings, tokens, data, and your desktop/startup shortcut choices. Select **Start Raikiri** on the finish page to reopen it.
+
 The installer is not code-signed yet, so Windows SmartScreen may say "Windows protected your PC": choose **More info → Run anyway**.
 
 Uninstall from **Settings → Apps**. It asks before deleting `%APPDATA%\Raikiri`, so your configuration survives reinstalls by default.
@@ -374,6 +376,15 @@ Generated files:
 - `SHA256SUMS`
 
 Linux artifacts can be smoke-tested locally from a Linux machine. The Windows installer can be smoke-tested with Wine (`wine raikiri-windows-amd64-setup.exe /S`), but Windows and macOS artifacts should still be tested on their target OS.
+
+To verify an upgrade with a running app, preserved data, and both shortcut choices in an isolated Wine prefix:
+
+```bash
+xvfb-run -a python packaging/windows/test-upgrade.py \
+  --previous /path/to/previous-setup.exe \
+  --current dist/release/raikiri-windows-amd64-setup.exe \
+  --version v4.0.1 --work-dir /tmp/raikiri-upgrade-check
+```
 
 ## Footprint
 

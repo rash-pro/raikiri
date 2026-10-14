@@ -1,0 +1,11 @@
+
+Edge TTS compatibility library
+==============================
+github.com/bytectlgo/edge-tts v1.0.5, Copyright (c) 2024 bytectlgo (MIT).
+Includes Raikiri's Sec-MS-GEC v2 compatibility patch, ported from
+rany2/edge-tts drm.py, Copyright (c) rany and HarryXiaoCN (LGPLv3),
+commit ba61d94442c18893f0c4d3c5ad253718b21ab93e.
+
+Source and build instructions, including the modified library, are provided
+in the matching Raikiri release source at https://github.com/rash-pro/raikiri.
+See third_party/edge-tts/README.md. The license texts follow.
