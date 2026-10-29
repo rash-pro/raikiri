@@ -130,7 +130,7 @@ Add these as OBS Browser Sources:
 - Support goal widget: `http://localhost:30001/overlay/widgets/support-goal/`
 - Recent events widget: `http://localhost:30001/overlay/widgets/recent-events/`
 - Custom widget: `http://localhost:30001/overlay/widgets/custom/?id=YOUR_WIDGET_ID`
-- Steam achievements: `http://localhost:30001/overlay/widgets/achievements/`
+- Steam and local video achievements: `http://localhost:30001/overlay/widgets/achievements/`
 - Final Fantasy roulette: `http://localhost:30001/overlay/widgets/roulette/` (spin from the dashboard or `POST /api/widgets/roulette/spin`)
 - Audio output: `http://localhost:30001/audio/`
 
@@ -142,6 +142,24 @@ Suggested sizes:
 - Audio: any size; enable **Control audio via OBS** if desired.
 
 If OBS or the browser blocks autoplay on `/audio`, right-click the source, choose **Interact**, and press **Enable Audio** once.
+
+### Local video achievements
+
+Local trackers can send `POST /api/widgets/achievements/local` with JSON:
+
+```json
+{
+  "id": "ps1-run1-shiva",
+  "game": "FFVIII · PS1",
+  "title": "Shiva",
+  "description": "Obtuviste a Shiva.",
+  "icon": "http://127.0.0.1:30012/icons/gf-shiva.png",
+  "unlocked": 1,
+  "total": 17
+}
+```
+
+These notices use the existing achievement widget's queue, animation, and sound. They do not change Steam progress. The endpoint accepts loopback connections and local tracker icons. Keep the same `id` when retrying a notice: Raikiri stores a receipt and acknowledges duplicates without publishing them again. Use a new ID for an intentional replay. A `503` response means no widget clients are connected yet; retry later.
 
 ## Stream Info Dock
 

@@ -123,6 +123,7 @@ func (a *App) routes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/widgets/roulette/spin", a.handleRouletteSpin)
 	mux.HandleFunc("/api/achievements", a.handleAchievements)
 	mux.HandleFunc("/api/widgets/achievements/test", a.handleAchievementsTest)
+	mux.HandleFunc("/api/widgets/achievements/local", a.handleLocalAchievement)
 	mux.HandleFunc("/ws/chat", a.hub.Serve("chat"))
 	mux.HandleFunc("/ws/alerts", a.hub.Serve("alerts"))
 	mux.HandleFunc("/ws/audio", a.hub.Serve("audio"))
