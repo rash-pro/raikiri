@@ -378,7 +378,7 @@ func (a *App) handleTwitchDeviceCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auth := NewTwitchAuth(a.store, cfg.TwitchClientID, a.logger)
-	code, err := auth.RequestDeviceCode(r.Context(), []string{"chat:read", "channel:read:subscriptions", "channel:read:redemptions", "bits:read", "moderator:read:followers", twitchBroadcastScope})
+	code, err := auth.RequestDeviceCode(r.Context(), []string{"chat:read", "channel:read:subscriptions", "channel:read:redemptions", "bits:read", "moderator:read:followers", twitchBroadcastScope, "channel:manage:redemptions"})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
@@ -444,6 +444,7 @@ func (a *App) handleTwitchSecret(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) routeChat(msg ChatMessage) {
 	a.hub.Publish("chat", "message", msg)
+	a.publishCustomWidgetChatCommand(msg)
 	cfg := a.config()
 	if !cfg.TTSCmdEnabled {
 		return
@@ -603,6 +604,37 @@ func customWidgetMatchesEvent(widget CustomWidgetConfig, evt Event) bool {
 		return false
 	}
 	return true
+}
+
+func (a *App) publishCustomWidgetChatCommand(msg ChatMessage) {
+	cfg := a.config().WidgetsConfig
+	var ids []string
+	var evt Event
+	for _, widget := range cfg.Custom {
+		if e, ok := customWidgetChatCommandEvent(widget, msg); ok {
+			ids = append(ids, widget.ID)
+			evt = e
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+	a.hub.Publish("widgets", "custom_event", map[string]any{"event": evt, "widgetIds": ids})
+}
+
+func customWidgetChatCommandEvent(widget CustomWidgetConfig, msg ChatMessage) (Event, bool) {
+	trigger := widget.Activation
+	if !widget.Enabled || strings.TrimSpace(trigger.ChatCommand) == "" || strings.TrimSpace(msg.CustomRewardID) != "" {
+		return Event{}, false
+	}
+	if trigger.ChatPlatform != "" && trigger.ChatPlatform != msg.Platform {
+		return Event{}, false
+	}
+	text, ok := ttsCommandText(msg.Content, trigger.ChatCommand)
+	if !ok {
+		return Event{}, false
+	}
+	return Event{Type: "chat_command", Platform: msg.Platform, User: msg.DisplayName, Message: text}, true
 }
 
 func (a *App) testEventForCustomWidget(widgetID string) Event {

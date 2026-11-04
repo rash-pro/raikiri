@@ -763,6 +763,8 @@ window.addEventListener('raikiri:event', event => {
             setInput('widget-custom-activationEventType', 'any');
             setInput('widget-custom-activationMinAmount', 0);
             setInput('widget-custom-activationRewardName', '');
+            setInput('widget-custom-activationChatCommand', '');
+            setInput('widget-custom-activationChatPlatform', '');
             setInput('widget-custom-html', '');
             setInput('widget-custom-css', '');
             setInput('widget-custom-js', '');
@@ -772,10 +774,12 @@ window.addEventListener('raikiri:event', event => {
         setInput('widget-custom-name', widget.name);
         setInput('widget-custom-id', widget.id);
         document.getElementById('widget-custom-enabled').checked = widget.enabled !== false;
-        const activation = { eventType: 'any', minAmount: 0, rewardName: '', ...(widget.activation || {}) };
+        const activation = { eventType: 'any', minAmount: 0, rewardName: '', chatCommand: '', chatPlatform: '', ...(widget.activation || {}) };
         setInput('widget-custom-activationEventType', activation.eventType);
         setInput('widget-custom-activationMinAmount', activation.minAmount);
         setInput('widget-custom-activationRewardName', activation.rewardName);
+        setInput('widget-custom-activationChatCommand', activation.chatCommand);
+        setInput('widget-custom-activationChatPlatform', activation.chatPlatform);
         setInput('widget-custom-html', widget.html);
         setInput('widget-custom-css', widget.css);
         setInput('widget-custom-js', widget.js);
@@ -793,7 +797,9 @@ window.addEventListener('raikiri:event', event => {
         widget.activation = {
             eventType: getInput('widget-custom-activationEventType', widget.activation?.eventType || 'any'),
             minAmount: Math.max(0, Number(getInput('widget-custom-activationMinAmount', widget.activation?.minAmount || 0)) || 0),
-            rewardName: getInput('widget-custom-activationRewardName', widget.activation?.rewardName || '')
+            rewardName: getInput('widget-custom-activationRewardName', widget.activation?.rewardName || ''),
+            chatCommand: getInput('widget-custom-activationChatCommand', ''),
+            chatPlatform: getInput('widget-custom-activationChatPlatform', '')
         };
         widget.html = getInput('widget-custom-html', widget.html || '');
         widget.css = getInput('widget-custom-css', widget.css || '');

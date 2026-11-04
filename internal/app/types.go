@@ -107,6 +107,10 @@ type CustomWidgetActivation struct {
 	EventType  string  `json:"eventType"`
 	MinAmount  float64 `json:"minAmount"`
 	RewardName string  `json:"rewardName"`
+	// ChatCommand also activates the widget from chat (e.g. "!quack"), for
+	// platforms without channel points. ChatPlatform limits it; "" = any.
+	ChatCommand  string   `json:"chatCommand,omitempty"`
+	ChatPlatform Platform `json:"chatPlatform,omitempty"`
 }
 
 type WidgetState struct {
