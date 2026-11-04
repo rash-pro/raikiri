@@ -22,7 +22,7 @@ This is the native Go rewrite. It ships as a small standalone binary. If you nee
 - OBS browser sources for chat, alerts, widgets, and audio.
 - Configurable widgets for support goals, recent events, and user-defined custom overlays.
 - Steam achievement toasts (including FFNx-based Final Fantasy releases) and a Final Fantasy roulette widget.
-- A stream-info dock that sets title, game, and tags on Twitch and YouTube at once, with title and tag ideas from a local AI agent CLI (Claude Code or Codex).
+- An **Info del stream** dashboard screen that sets title, game, and tags on Twitch and YouTube at once, with title and tag ideas from a local AI agent CLI (Claude Code or Codex). Also available as a standalone OBS dock.
 
 ## Downloading a Release
 
@@ -161,9 +161,11 @@ Local trackers can send `POST /api/widgets/achievements/local` with JSON:
 
 These notices use the existing achievement widget's queue, animation, and sound. They do not change Steam progress. The endpoint accepts loopback connections and local tracker icons. Keep the same `id` when retrying a notice: Raikiri stores a receipt and acknowledges duplicates without publishing them again. Use a new ID for an intentional replay. A `503` response means no widget clients are connected yet; retry later.
 
-## Stream Info Dock
+## Stream Info
 
-`http://localhost:30001/dock/stream-info/` sets the title, game, and tags on Twitch and YouTube at once. Use it as an OBS Custom Browser Dock or keep it open in a browser tab.
+Open **Info del stream** in the dashboard sidebar, or go directly to `http://localhost:30001/dashboard/#stream-info`, to set the title, game, and tags on Twitch and YouTube at once. This screen works in a regular browser, including on Wayland. **Actualizar** applies stream changes; the dashboard's **Save Configuration** button is for the other settings screens.
+
+The compact panel remains available at `http://localhost:30001/dock/stream-info/` for an OBS Custom Browser Dock or a separate browser tab. Both views use the same controls and saved platform selection.
 
 - Twitch gets title, category, and tags; YouTube gets title and tags (plus the Gaming category), because the YouTube API can't set the specific game. If no YouTube broadcast exists yet, the title is applied within 30 seconds of going live.
 - **Sugerir** asks an AI agent CLI installed on the same machine for title and tag ideas, based on your recent titles, past Twitch broadcasts, and Steam achievement progress for the current game. Pick the CLI (Claude Code or Codex) and model in the dashboard under **Assistant**. It uses the CLI's own login; no API key is stored in Raikiri.

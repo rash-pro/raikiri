@@ -42,6 +42,7 @@ body {
 /* Sidebar */
 .sidebar {
     width: 260px;
+    flex-shrink: 0;
     background: var(--sidebar-bg);
     backdrop-filter: blur(20px);
     border-right: 1px solid var(--border);
@@ -102,6 +103,7 @@ body {
 /* Main Content */
 .content {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
 }
@@ -137,6 +139,30 @@ body {
 }
 
 .view-section.active { display: block; }
+
+.stream-info-frame {
+    display: block;
+    width: 100%;
+    height: 640px;
+    border: 0;
+    color-scheme: dark;
+}
+
+@media (max-width: 760px) {
+    .app-layout { flex-direction: column; }
+    .sidebar { width: 100%; border-right: 0; border-bottom: 1px solid var(--border); }
+    .logo { padding: 16px 20px 4px; }
+    .nav-menu { flex-direction: row; overflow-x: auto; padding: 12px; }
+    .nav-item { flex-shrink: 0; padding: 10px 12px; }
+    .content { min-height: 0; }
+    .topbar { padding: 24px 20px 12px; gap: 16px; flex-wrap: wrap; }
+    .title-area h1 { font-size: 28px; }
+    .scroll-area { padding: 12px 20px 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .view-section { animation: none; }
+}
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }

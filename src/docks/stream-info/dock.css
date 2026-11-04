@@ -17,6 +17,9 @@
 
 * { box-sizing: border-box; }
 
+.stream-editor { display: contents; }
+.dashboard-only { display: none; }
+
 html, body {
     margin: 0;
     background: var(--bg);

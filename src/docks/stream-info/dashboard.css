@@ -1,0 +1,80 @@
+.dashboard-view {
+    --bg: #09090b;
+    --field: #18181b;
+    --field-hover: #27272a;
+    --line: #34343b;
+    --text: #fafafa;
+    --muted: #a1a1aa;
+    --accent: #9146ff;
+    --radius: 8px;
+}
+
+.dashboard-view, .dashboard-view body { background: transparent; }
+.dashboard-view body { font-size: 14px; overflow: hidden; }
+
+.dashboard-view .dock {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 1fr);
+    grid-template-rows: min-content 1fr;
+    gap: 24px;
+    max-width: none;
+    padding: 0;
+    align-items: start;
+}
+
+.dashboard-view .stream-editor,
+.dashboard-view .ideas,
+.dashboard-view .recent {
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid rgb(255 255 255 / .08);
+    border-radius: 16px;
+    background: rgb(39 39 42 / .4);
+}
+
+.dashboard-view .stream-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+}
+
+.dashboard-view .ideas { grid-column: 2; grid-row: 1; gap: 16px; }
+.dashboard-view .recent { grid-column: 2; grid-row: 2; }
+.dashboard-view .recent[hidden] { display: none; }
+.dashboard-view .dashboard-only { display: block; }
+.dashboard-view .ideas h2, .dashboard-view .recent h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--text);
+}
+
+.dashboard-view label { font-size: 12px; margin-bottom: 8px; }
+.dashboard-view textarea, .dashboard-view input { padding: 12px; }
+.dashboard-view textarea { font-size: 18px; min-height: 100px; }
+.dashboard-view .tags input { padding: 5px 6px; min-width: 60px; }
+.dashboard-view .target { min-width: 0; padding: 12px 14px; gap: 4px; }
+.dashboard-view .target-state { max-width: 100%; }
+.dashboard-view .apply { padding: 13px; }
+.dashboard-view .game-edit { padding: 8px; }
+.dashboard-view .game img { width: 32px; height: 44px; }
+.dashboard-view .ideas-bar { flex-wrap: wrap; }
+.dashboard-view .ideas-bar input { min-width: 130px; }
+.dashboard-view .suggest { min-height: 42px; }
+.dashboard-view .idea-tags-row { flex-wrap: wrap; }
+.dashboard-view .tag[aria-pressed="true"] { background: rgb(145 70 255 / .14); }
+.dashboard-view .suggest:hover { background: rgb(145 70 255 / .1); }
+.dashboard-view .recent button { padding: 10px 6px; }
+.dashboard-view .recent .text { gap: 4px; }
+
+@media (max-width: 700px) {
+    .dashboard-view .dock { display: flex; gap: 16px; }
+    .dashboard-view .stream-editor { order: -1; }
+    .dashboard-view .stream-editor,
+    .dashboard-view .ideas,
+    .dashboard-view .recent { width: 100%; padding: 20px; }
+}

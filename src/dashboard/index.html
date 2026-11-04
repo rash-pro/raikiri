@@ -16,6 +16,10 @@
                 <h2>Raikiri <span id="runtime-version">...</span></h2>
             </div>
             <nav class="nav-menu">
+                <a href="#stream-info" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 9h10M7 13h10M7 17h6"></path></svg>
+                    Info del stream
+                </a>
                 <a href="#platforms" class="nav-item active">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                     Platforms Connect
@@ -53,6 +57,9 @@
             <form id="config-form" class="scroll-area" hx-post="/api/config/form" hx-target="#toast" hx-swap="innerHTML">
                 <input type="hidden" id="config-alertsConfig" name="alertsConfig">
                 <input type="hidden" id="config-widgetsConfig" name="widgetsConfig">
+                <section id="section-stream-info" class="view-section" aria-label="Info del stream">
+                    <iframe id="stream-info-frame" class="stream-info-frame" title="Editar información del stream"></iframe>
+                </section>
                 <!-- PLATFORMS SECTION -->
                 <section id="section-platforms" class="view-section active">
                     <div class="card platform-card twitch">
@@ -307,10 +314,10 @@
                             
                             <div class="url-copy-box">
                                 <div>
-                                    <h4>Stream Info (OBS Custom Browser Dock)</h4>
+                                    <h4>Stream Info (standalone / OBS dock)</h4>
                                     <span class="url">http://localhost:30001/dock/stream-info/</span>
                                 </div>
-                                <button class="btn btn-secondary" type="button" onclick="navigator.clipboard.writeText('http://localhost:30001/dock/stream-info/')">Copy</button>
+                                <a class="guide-link" href="#stream-info">Open in Raikiri</a>
                             </div>
 
                             <div class="url-copy-box">

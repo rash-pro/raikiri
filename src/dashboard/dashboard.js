@@ -6,30 +6,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageSubtitle = document.getElementById('page-subtitle');
     
     const sectionmeta = {
+        '#stream-info': { title: 'Info del stream', sub: 'Actualiza el título, el juego y las etiquetas de Twitch y YouTube.' },
         '#platforms': { title: 'Platforms Setup', sub: 'Connect your streaming accounts for real-time events.' },
         '#tts': { title: 'Audio & TTS', sub: 'Configure Edge TTS integration and audio routing.' },
         '#overlays': { title: 'Overlays', sub: 'Browser sources to add directly to OBS.' },
         '#widgets': { title: 'Widgets', sub: 'Configurable browser sources for stream scenes.' },
-        '#assistant': { title: 'Assistant', sub: 'AI suggestions in the stream-info dock.' }
+        '#assistant': { title: 'Assistant', sub: 'AI suggestions for Info del stream.' }
     };
 
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetHash = item.getAttribute('href');
-            
-            navItems.forEach(n => n.classList.remove('active'));
-            item.classList.add('active');
-            
-            sections.forEach(s => s.classList.remove('active'));
-            document.querySelector(targetHash.replace('#', '#section-')).classList.add('active');
-            
-            if (sectionmeta[targetHash]) {
-                pageTitle.innerText = sectionmeta[targetHash].title;
-                pageSubtitle.innerText = sectionmeta[targetHash].sub;
-            }
+    const streamInfoFrame = document.getElementById('stream-info-frame');
+    let streamInfoResizeObserver;
+    streamInfoFrame.addEventListener('load', () => {
+        const doc = streamInfoFrame.contentDocument;
+        if (!doc?.getElementById('form')) return;
+        streamInfoResizeObserver?.disconnect();
+        streamInfoResizeObserver = new ResizeObserver(() => {
+            if (!streamInfoFrame.getClientRects().length) return;
+            const results = doc.getElementById('game-results');
+            const height = Math.max(doc.body.getBoundingClientRect().height, results.hidden ? 0 : results.getBoundingClientRect().bottom);
+            streamInfoFrame.style.height = Math.ceil(height + 2) + 'px';
         });
+        streamInfoResizeObserver.observe(doc.body);
+        streamInfoResizeObserver.observe(doc.getElementById('game-results'));
     });
+
+    function showSection() {
+        const targetHash = Object.hasOwn(sectionmeta, location.hash) ? location.hash : '#platforms';
+        navItems.forEach(item => {
+            const active = item.getAttribute('href') === targetHash;
+            item.classList.toggle('active', active);
+            if (active) item.setAttribute('aria-current', 'page');
+            else item.removeAttribute('aria-current');
+        });
+        sections.forEach(section => section.classList.toggle('active', section.id === 'section-' + targetHash.slice(1)));
+        pageTitle.innerText = sectionmeta[targetHash].title;
+        pageSubtitle.innerText = sectionmeta[targetHash].sub;
+        document.getElementById('saveBtn').hidden = targetHash === '#stream-info';
+        if (targetHash === '#stream-info' && !streamInfoFrame.hasAttribute('src')) {
+            streamInfoFrame.src = '/dock/stream-info/?view=dashboard';
+        }
+    }
+
+    window.addEventListener('hashchange', showSection);
+    showSection();
 
     let currentConfig = {};
     let prevAlert = null;
